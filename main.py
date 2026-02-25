@@ -15,3 +15,23 @@ async def index(request: Request):
         "index.html",
         {"request": request}
     )
+import sqlite3
+
+def init_db():
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS sikn_table(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        col_a TEXT,
+        col_b TEXT,
+        proverka TEXT,
+        status TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+init_db()
