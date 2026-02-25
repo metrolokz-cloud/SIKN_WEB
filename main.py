@@ -11,9 +11,14 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM sikn_table")
+    rows = cur.fetchall()
+    conn.close()
     return templates.TemplateResponse(
         "index.html",
-        {"request": request}
+        {"request": request, "rows": rows}
     )
 import sqlite3
 
@@ -35,3 +40,4 @@ def init_db():
     conn.close()
 
 init_db()
+
