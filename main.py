@@ -1,3 +1,4 @@
+import os
 import psycopg2
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
@@ -8,16 +9,22 @@ app = FastAPI()
 # Подключение статических файлов
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Использование переменных окружения для подключения к базе данных
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 def get_db():
     # Подключение к базе данных PostgreSQL
     try:
         conn = psycopg2.connect(
-            dbname="sikn_db", 
-            user="sikn_db_user", 
-            password="KTOKMH", 
-            host="sikn-db.onrender.com",  # Правильный хост для базы данных
-            port="5432"  # Порт для PostgreSQL
+            dbname=DB_NAME, 
+            user=DB_USER, 
+            password=DB_PASSWORD, 
+            host=DB_HOST,
+            port=DB_PORT
         )
         return conn
     except Exception as e:
@@ -31,13 +38,12 @@ def init_db():
     try:
         with conn.cursor() as cur:
             # Создание таблицы пользователей, если не существует
-            cur.execute("""
-            CREATE TABLE IF NOT EXISTS users(
-                id SERIAL PRIMARY KEY,
-                username TEXT UNIQUE,
-                password TEXT
-            )
-            """)
+            cur.execute(""" 
+            CREATE TABLE IF NOT EXISTS users( 
+                id SERIAL PRIMARY KEY, 
+                username TEXT UNIQUE, 
+                password TEXT 
+            )""")
 
             # Создание таблицы ячеек, если не существует
             cur.execute("""
@@ -129,7 +135,7 @@ async def save_cell(req: Request):
                 "INSERT INTO cells(row, col, value) VALUES(%s, %s, %s)",
                 (row, col, value)
             )
-        
+
         # Сохранение изменений в базе данных
         db.commit()
         return {"ok": True}
