@@ -15,7 +15,7 @@ def get_db():
             dbname="sikn_db", 
             user="sikn_db_user", 
             password="KTOKMH", 
-            host="your_internal_host",  # Вставь INTERNAL URL базы
+            host="sikn-db.onrender.com",  # Правильный хост для базы данных
             port="5432"  # Порт PostgreSQL
         )
         return conn
