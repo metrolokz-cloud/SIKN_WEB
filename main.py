@@ -117,6 +117,7 @@ async def save_cell(req: Request):
                 "INSERT INTO cells(row, col, value) VALUES(%s, %s, %s)",
                 (row, col, value)
             )
+            
 
         db.commit()
         return {"ok": True}
