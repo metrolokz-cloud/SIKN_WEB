@@ -1,7 +1,7 @@
+import psycopg2
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-import sqlite3
 
 app = FastAPI()
 
@@ -9,16 +9,25 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 def get_db():
-    return sqlite3.connect("database.db")
+    # Подключение к PostgreSQL
+    conn = psycopg2.connect(
+        dbname="sikn_db", 
+        user="sikn_db_user", 
+        password="KTOKMH", 
+        host="localhost",  # Используй INTERNAL URL для Render
+        port="5432"  # Порт PostgreSQL
+    )
+    return conn
 
 
 def init_db():
-    conn = sqlite3.connect("database.db")
+    # Инициализация базы данных
+    conn = get_db()
     cur = conn.cursor()
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         username TEXT UNIQUE,
         password TEXT
     )
@@ -35,7 +44,7 @@ def init_db():
     cur.execute("DELETE FROM users")
 
     cur.execute(
-        "INSERT INTO users(username,password) VALUES(?,?)",
+        "INSERT INTO users(username,password) VALUES(%s,%s)",
         ("SIKN", "KTOKMH")
     )
 
@@ -48,11 +57,13 @@ init_db()
 
 @app.get("/")
 def index():
+    # Отправка файла index.html
     return FileResponse("templates/index.html")
 
 
 @app.post("/login")
 async def login(req: Request):
+    # Логин пользователя
     data = await req.json()
 
     username = data.get("username")
@@ -62,7 +73,7 @@ async def login(req: Request):
     cur = db.cursor()
 
     cur.execute(
-        "SELECT * FROM users WHERE username=? AND password=?",
+        "SELECT * FROM users WHERE username=%s AND password=%s",
         (username, password)
     )
 
@@ -79,6 +90,7 @@ async def login(req: Request):
 
 @app.post("/logout")
 async def logout():
+    # Логаут пользователя
     res = JSONResponse(content={"ok": True})
     res.delete_cookie("user")
     return res
@@ -86,6 +98,7 @@ async def logout():
 
 @app.post("/save_cell")
 async def save_cell(req: Request):
+    # Сохранение ячейки в базе данных
     data = await req.json()
 
     row = data["row"]
@@ -95,9 +108,9 @@ async def save_cell(req: Request):
     db = get_db()
     cur = db.cursor()
 
-    cur.execute("DELETE FROM cells WHERE row=? AND col=?", (row, col))
+    cur.execute("DELETE FROM cells WHERE row=%s AND col=%s", (row, col))
     cur.execute(
-        "INSERT INTO cells(row,col,value) VALUES(?,?,?)",
+        "INSERT INTO cells(row,col,value) VALUES(%s,%s,%s)",
         (row, col, value)
     )
 
@@ -109,6 +122,7 @@ async def save_cell(req: Request):
 
 @app.get("/load_cells")
 async def load_cells():
+    # Загрузка всех ячеек из базы данных
     db = get_db()
     cur = db.cursor()
 
