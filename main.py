@@ -1,5 +1,5 @@
 import psycopg2
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -10,46 +10,50 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 def get_db():
     # Подключение к PostgreSQL
-    conn = psycopg2.connect(
-        dbname="sikn_db", 
-        user="sikn_db_user", 
-        password="KTOKMH", 
-        host="localhost",  # Используй INTERNAL URL для Render
-        port="5432"  # Порт PostgreSQL
-    )
-    return conn
+    try:
+        conn = psycopg2.connect(
+            dbname="sikn_db", 
+            user="sikn_db_user", 
+            password="KTOKMH", 
+            host="your_internal_host",  # Вставь INTERNAL URL базы
+            port="5432"  # Порт PostgreSQL
+        )
+        return conn
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database connection error: {str(e)}")
 
 
 def init_db():
     # Инициализация базы данных
     conn = get_db()
-    cur = conn.cursor()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+            CREATE TABLE IF NOT EXISTS users(
+                id SERIAL PRIMARY KEY,
+                username TEXT UNIQUE,
+                password TEXT
+            )
+            """)
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS users(
-        id SERIAL PRIMARY KEY,
-        username TEXT UNIQUE,
-        password TEXT
-    )
-    """)
+            cur.execute("""
+            CREATE TABLE IF NOT EXISTS cells(
+                row INTEGER,
+                col INTEGER,
+                value TEXT
+            )
+            """)
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS cells(
-        row INTEGER,
-        col INTEGER,
-        value TEXT
-    )
-    """)
+            cur.execute("DELETE FROM users")
 
-    cur.execute("DELETE FROM users")
+            cur.execute(
+                "INSERT INTO users(username, password) VALUES(%s, %s)",
+                ("SIKN", "KTOKMH")
+            )
 
-    cur.execute(
-        "INSERT INTO users(username,password) VALUES(%s,%s)",
-        ("SIKN", "KTOKMH")
-    )
-
-    conn.commit()
-    conn.close()
+            conn.commit()
+    finally:
+        conn.close()
 
 
 init_db()
@@ -65,27 +69,27 @@ def index():
 async def login(req: Request):
     # Логин пользователя
     data = await req.json()
-
     username = data.get("username")
     password = data.get("password")
 
     db = get_db()
-    cur = db.cursor()
+    try:
+        with db.cursor() as cur:
+            cur.execute(
+                "SELECT * FROM users WHERE username=%s AND password=%s",
+                (username, password)
+            )
 
-    cur.execute(
-        "SELECT * FROM users WHERE username=%s AND password=%s",
-        (username, password)
-    )
+            user = cur.fetchone()
 
-    user = cur.fetchone()
-    db.close()
+        if not user:
+            return {"error": "Invalid login"}
 
-    if not user:
-        return {"error": "Invalid login"}
-
-    res = JSONResponse(content={"ok": True})
-    res.set_cookie(key="user", value=username)
-    return res
+        res = JSONResponse(content={"ok": True})
+        res.set_cookie(key="user", value=username)
+        return res
+    finally:
+        db.close()
 
 
 @app.post("/logout")
@@ -106,31 +110,32 @@ async def save_cell(req: Request):
     value = data["value"]
 
     db = get_db()
-    cur = db.cursor()
+    try:
+        with db.cursor() as cur:
+            cur.execute("DELETE FROM cells WHERE row=%s AND col=%s", (row, col))
+            cur.execute(
+                "INSERT INTO cells(row, col, value) VALUES(%s, %s, %s)",
+                (row, col, value)
+            )
 
-    cur.execute("DELETE FROM cells WHERE row=%s AND col=%s", (row, col))
-    cur.execute(
-        "INSERT INTO cells(row,col,value) VALUES(%s,%s,%s)",
-        (row, col, value)
-    )
-
-    db.commit()
-    db.close()
-
-    return {"ok": True}
+        db.commit()
+        return {"ok": True}
+    finally:
+        db.close()
 
 
 @app.get("/load_cells")
 async def load_cells():
     # Загрузка всех ячеек из базы данных
     db = get_db()
-    cur = db.cursor()
+    try:
+        with db.cursor() as cur:
+            cur.execute("SELECT row, col, value FROM cells")
+            rows = cur.fetchall()
 
-    cur.execute("SELECT row,col,value FROM cells")
-    rows = cur.fetchall()
-    db.close()
-
-    return [
-        {"row": r[0], "col": r[1], "value": r[2]}
-        for r in rows
-    ]
+        return [
+            {"row": r[0], "col": r[1], "value": r[2]}
+            for r in rows
+        ]
+    finally:
+        db.close()
