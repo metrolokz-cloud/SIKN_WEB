@@ -1,9 +1,8 @@
-import sqlite3
-from fastapi import FastAPI, Request
+import os
+import psycopg2
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-import os
-import uvicorn
 
 app = FastAPI()
 
@@ -11,7 +10,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 def get_db():
-    return sqlite3.connect("local.db")
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise Exception("DATABASE_URL not set")
+
+    return psycopg2.connect(database_url)
 
 
 def init_db():
@@ -21,7 +24,7 @@ def init_db():
 
         cur.execute("""
         CREATE TABLE IF NOT EXISTS users(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             username TEXT UNIQUE,
             password TEXT
         )
@@ -38,7 +41,7 @@ def init_db():
         cur.execute("DELETE FROM users")
 
         cur.execute(
-            "INSERT INTO users(username, password) VALUES(?, ?)",
+            "INSERT INTO users(username, password) VALUES(%s, %s)",
             ("SIKN", "KTOKMH")
         )
 
@@ -48,7 +51,9 @@ def init_db():
         conn.close()
 
 
-init_db()
+@app.on_event("startup")
+def startup_event():
+    init_db()
 
 
 @app.get("/")
@@ -67,7 +72,7 @@ async def login(req: Request):
         cur = db.cursor()
 
         cur.execute(
-            "SELECT * FROM users WHERE username=? AND password=?",
+            "SELECT * FROM users WHERE username=%s AND password=%s",
             (username, password)
         )
 
@@ -103,9 +108,9 @@ async def save_cell(req: Request):
     try:
         cur = db.cursor()
 
-        cur.execute("DELETE FROM cells WHERE row=? AND col=?", (row, col))
+        cur.execute("DELETE FROM cells WHERE row=%s AND col=%s", (row, col))
         cur.execute(
-            "INSERT INTO cells(row, col, value) VALUES(?, ?, ?)",
+            "INSERT INTO cells(row, col, value) VALUES(%s, %s, %s)",
             (row, col, value)
         )
 
@@ -131,8 +136,3 @@ async def load_cells():
         ]
     finally:
         db.close()
-
-
-if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
