@@ -852,7 +852,8 @@ let activeCell = null;
 let activeSchemeCell = null;
 
 // ===== RANGE COLUMN (Аттестованный диапазон) =====
-document.querySelectorAll("#sikn-table tr[data-row]").forEach((row)=>{
+document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
+if(i===0) return;
 
     const td = row.children[5];
 
