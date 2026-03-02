@@ -1052,7 +1052,7 @@ document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
 });
 
 // ===== VERIFY COLUMN (11) =====
-document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
+document.querySelectorAll("#sikn-table tr").forEach(function(row,i){
 
     if(i===0) return;
 
@@ -1064,22 +1064,28 @@ document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
         activeVerifyCell = td;
 
         const afterCell = row.querySelector("td:nth-child(7)");
-        const text = afterCell ? afterCell.innerText : "";
-
         const box = document.getElementById("verify-il-container");
         box.innerHTML="";
 
-        const matches = text.match(/ИЛ\d+/g);
+        if(afterCell){
 
-        if(matches){
-            matches.forEach((name)=>{
-                const div=document.createElement("div");
-                div.style.marginTop="10px";
-                div.innerHTML=
-                    '<label>Дата поверки ПР '+name+':</label><br>'+
-                    '<input type="text" class="custom-date verify-il" autocomplete="off" style="width:100%;">';
-                box.appendChild(div);
-            });
+            const html = afterCell.innerHTML;
+            const matches = html.match(/Диапазон ИЛ\d+/g);
+
+            if(matches){
+                matches.forEach(function(name){
+
+                    const num = name.replace("Диапазон ИЛ","");
+
+                    const div = document.createElement("div");
+                    div.style.marginTop="10px";
+                    div.innerHTML =
+                        '<label>Дата поверки ПР ИЛ'+num+':</label><br>'+
+                        '<input type="text" class="custom-date verify-il" autocomplete="off" style="width:100%;">';
+
+                    box.appendChild(div);
+                });
+            }
         }
 
         document.getElementById("verify-popup").style.display="block";
