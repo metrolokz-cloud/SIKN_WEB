@@ -865,19 +865,16 @@ document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
     if(row.children.length !== 13) return;
 
     const td6 = row.children[5];
-    const td7 = row.children[6];
 
-    [td6, td7].forEach(td=>{
-        if(!td) return;
-
-        td.style.cursor="pointer";
-        td.onclick=function(){
-            activeCell = td;
-            document.getElementById("att-range-input").value = td.innerText;
-            document.getElementById("range-popup").style.display="block";
-        };
-    });
-
+if(td6){
+    td6.style.cursor="pointer";
+    td6.onclick=function(){
+        activeCell = td6;
+        document.getElementById("att-range-input").value = td6.innerText;
+        document.getElementById("range-popup").style.display="block";
+    };
+}
+       
 });
 
 
@@ -1407,7 +1404,7 @@ body, table, th, td {
 
 
 ${table.outerHTML}
-</body>
+
 </html>
 `;
 
@@ -1507,17 +1504,7 @@ if(user){
 }
 
 
-if(userDivision === "west"){
 
-    document.querySelectorAll("#sikn-table tr[data-row]").forEach(row=>{
-        const r = parseInt(row.getAttribute("data-row"));
-
-        if(r >= 49 && r <= 59){
-            row.style.display = "none";
-        }
-    });
-
-}
 
         
 
@@ -1568,6 +1555,7 @@ document.getElementById("login-password").addEventListener("keydown", function(e
 });
 
 </script>
+
 
 
 </body>
