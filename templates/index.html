@@ -858,75 +858,29 @@ fetch("/load_cells")
 let activeCell = null;
 let activeSchemeCell = null;
 
-// ===== RANGE COLUMNS (6 и 7) =====
-setTimeout(function(){
-
-    document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
-
-        if(i===0) return;
-        if(row.children.length !== 13) return;
-
-        [5,6].forEach(function(index){
-
-            const td = row.children[index];
-            if(!td) return;
-
-            td.style.cursor = "pointer";
-
-            td.onclick = function(){
-                activeCell = td;
-                document.getElementById("att-range-input").value = td.innerText;
-                document.getElementById("range-popup").style.display = "block";
-            };
-
-        });
-
-    });
-
-}, 0);
-
-
-
-    const td = row.children[6];
-
-    if(!td) return;
-
-    td.style.cursor = "pointer";
-
-    td.onclick = function(){
-        activeCell = td;
-        document.getElementById("range-popup").style.display="block";
-    };
-
-});
-
-// ===== RANGE COLUMNS (6 и 7 столбец) =====
+// ===== RANGE COLUMNS (чистый блок) =====
 document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
 
     if(i===0) return;
     if(row.children.length !== 13) return;
 
-    // 6 столбец
-    let td1 = row.children[5];
-    if(td1){
-        td1.style.cursor = "pointer";
-        td1.onclick = function(){
-            activeCell = td1;
-            document.getElementById("range-popup").style.display="block";
-        };
-    }
+    const td6 = row.children[5];
+    const td7 = row.children[6];
 
-    // 7 столбец
-    let td2 = row.children[6];
-    if(td2){
-        td2.style.cursor = "pointer";
-        td2.onclick = function(){
-            activeCell = td2;
+    [td6, td7].forEach(td=>{
+        if(!td) return;
+
+        td.style.cursor="pointer";
+        td.onclick=function(){
+            activeCell = td;
+            document.getElementById("att-range-input").value = td.innerText;
             document.getElementById("range-popup").style.display="block";
         };
-    }
+    });
 
 });
+
+
 
 // ===== RANGE POPUP =====
 document.getElementById("range-cancel").onclick=function(){
