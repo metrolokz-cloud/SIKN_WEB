@@ -872,13 +872,13 @@ fetch("/load_cells")
 
         td.innerHTML = c.value;
 
-        if(c.col === 11 && c.value.includes("выведена")){
-            row.classList.add("blue-row");
-        }
+        if(c.col === 11 && c.value && c.value.includes("выведена")){
+    row.classList.add("blue-row");
+}
 
-        if(c.col === 10){
-            checkVerifyColors(td);
-        }
+if(c.col === 10 && c.value){
+    checkVerifyColors(td);
+}
 
     });
 
