@@ -1091,7 +1091,7 @@ document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
 
     if(i===0) return;
 
-    const td = row.children[10];
+    const td = row.querySelector("td:nth-child(11)");
 
     if(!td) return;
 
