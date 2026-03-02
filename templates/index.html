@@ -858,6 +858,33 @@ fetch("/load_cells")
 let activeCell = null;
 let activeSchemeCell = null;
 
+// ===== RANGE COLUMNS (6 и 7) =====
+setTimeout(function(){
+
+    document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
+
+        if(i===0) return;
+        if(row.children.length !== 13) return;
+
+        [5,6].forEach(function(index){
+
+            const td = row.children[index];
+            if(!td) return;
+
+            td.style.cursor = "pointer";
+
+            td.onclick = function(){
+                activeCell = td;
+                document.getElementById("att-range-input").value = td.innerText;
+                document.getElementById("range-popup").style.display = "block";
+            };
+
+        });
+
+    });
+
+}, 0);
+
 
 
     const td = row.children[6];
