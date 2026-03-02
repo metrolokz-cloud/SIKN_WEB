@@ -646,39 +646,19 @@ cursor:pointer;
 
 <div id="range-popup" class="popup">
 
-<div style="font-weight:bold; margin-bottom:10px;">Диапазон СИКН</div>
+<div class="popup-title">Аттестованный диапазон СИКН</div>
 
 <div>
-<label>Диапазон по СИКН:</label><br>
-<input type="text" id="sikn-range-input" style="width:100%;">
+<label>Аттестованный диапазон СИКН:</label>
+<input type="text" id="att-range-input">
 </div>
 
-<div style="margin-top:10px;">
-<label>Количество ИЛ:</label>
-<select id="il-count">
-<option value="0">0</option>
-<option value="1">1</option>
-<option value="2">2</option>
-<option value="3">3</option>
-<option value="4">4</option>
-<option value="5">5</option>
-<option value="6">6</option>
-<option value="7">7</option>
-<option value="8">8</option>
-</select>
-</div>
-
-<div id="il-container" style="margin-top:10px;"></div>
-
-<div style="margin-top:15px; text-align:right;">
+<div class="popup-actions">
 <button id="range-save">Сохранить</button>
 <button id="range-cancel">Отмена</button>
 </div>
 
-</div>
-
-
-<div id="scheme-popup" class="popup">
+</div><div id="scheme-popup" class="popup">
 
 <div style="margin-bottom:15px; font-weight:bold;">Текущий способ сдачи нефти</div>
 
@@ -843,123 +823,96 @@ cursor:pointer;
 
 <script>
 
+
+
 fetch("/load_cells")
-.then(r=>r.json())
-.then(data=>{
+.then(r => r.json())
+.then(data => {
 
-    data.forEach(c=>{
-    const row=document.getElementById("sikn-table").rows[c.row];
-    if(!row) return;
-    const td=row.cells[c.col];
-    if(!td) return;
+    data.forEach(c => {
 
-    td.innerHTML=c.value;
+        const row = document.getElementById("sikn-table").rows[c.row];
+        if(!row) return;
 
-    // вернуть синий цвет строки
-    if(c.col===11 && c.value.includes("выведена")){
-        row.classList.add("blue-row");
-    }
+        const td = row.cells[c.col];
+        if(!td) return;
 
-    // вернуть цвет дат поверки
-    if(c.col===10){
-        checkVerifyColors(td);
-    }
+        td.innerHTML = c.value;
+
+        if(c.col === 11 && c.value.includes("выведена")){
+            row.classList.add("blue-row");
+        }
+
+        if(c.col === 10){
+            checkVerifyColors(td);
+        }
+
+    });
+
+})
+.catch(err => {
+    console.error("Ошибка загрузки данных:", err);
 });
 
-});
 
 let activeCell = null;
 let activeSchemeCell = null;
 
-// ===== RANGE COLUMN (Аттестованный диапазон) =====
-document.querySelectorAll("#sikn-table tr[data-row]").forEach((row)=>{
-
-    const td = row.children[5];
-
-    if(!td) return;
-
-    td.style.cursor = "pointer";
-
-    td.onclick = function(){
-        activeCell = td;
-        document.getElementById("range-popup").style.display="block";
-    };
-
-});
-
-// ===== SCHEME COLUMN (10) =====
+// ===== RANGE COLUMNS (чистый блок) =====
 document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
 
     if(i===0) return;
+    if(row.children.length !== 13) return;
 
-    const td = row.children[9];
+    const td6 = row.children[5];
+    const td7 = row.children[6];
 
-    if(!td) return;
+    [td6, td7].forEach(td=>{
+        if(!td) return;
 
-    td.classList.add("scheme-cell");
-
-    td.onclick = function(){
-        activeSchemeCell = td;
-        document.getElementById("scheme-popup").style.display="block";
-    };
+        td.style.cursor="pointer";
+        td.onclick=function(){
+            activeCell = td;
+            document.getElementById("att-range-input").value = td.innerText;
+            document.getElementById("range-popup").style.display="block";
+        };
+    });
 
 });
+
+
 
 // ===== RANGE POPUP =====
 document.getElementById("range-cancel").onclick=function(){
     document.getElementById("range-popup").style.display="none";
 };
 
-document.getElementById("il-count").onchange=function(){
 
-    const count = parseInt(this.value);
-    const box = document.getElementById("il-container");
-    box.innerHTML="";
-
-    for(let i=1;i<=count;i++){
-        const div=document.createElement("div");
-        div.innerHTML='<label>ИЛ'+i+':</label><br><input type="text" class="il-input" style="width:100%; margin-bottom:6px;">';
-        box.appendChild(div);
-    }
-
-};
 
 document.getElementById("range-save").onclick=function(){
 
-
-
-    const sikn=document.getElementById("sikn-range-input").value;
-    const ils=document.querySelectorAll(".il-input");
-
-    let text="";
-
-    if(sikn){
-        text+=sikn+" по СИКН<br><br>";
-    }
-
-    ils.forEach((el,i)=>{
-        if(el.value){
-            text+=el.value+" по ИЛ"+(i+1)+"<br>";
-        }
-    });
+    const val = document.getElementById("att-range-input").value;
 
     if(activeCell){
-        activeCell.innerHTML=text;
+        activeCell.innerHTML = val;
 
-fetch("/save_cell",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-        row: activeCell.parentElement.rowIndex,
-        col: activeCell.cellIndex,
-        value: text
-    })
-});
+        fetch("/save_cell",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                row: activeCell.parentElement.rowIndex,
+                col: activeCell.cellIndex,
+                value: val
+            })
+        });
     }
 
     document.getElementById("range-popup").style.display="none";
-
 };
+
+
+
+  
 
 // ===== SCHEME POPUP =====
 document.getElementById("scheme-cancel").onclick=function(){
@@ -1035,7 +988,7 @@ document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
 
         activeVerifyCell = td;
 
-        const rangeCell = row.children[6];
+        const rangeCell = row.children[5];
         const text = rangeCell ? rangeCell.innerText : "";
 
         const matches = text.match(/ИЛ\d+/g);
@@ -1554,17 +1507,7 @@ if(user){
 }
 
 
-if(userDivision === "west"){
 
-    document.querySelectorAll("#sikn-table tr[data-row]").forEach(row=>{
-        const r = parseInt(row.getAttribute("data-row"));
-
-        if(r >= 49 && r <= 59){
-            row.style.display = "none";
-        }
-    });
-
-}
 
         
 
