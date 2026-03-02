@@ -1662,6 +1662,41 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row){
 
 });
 
+// ===== STATE COLUMN (12) =====
+document.querySelectorAll("#sikn-table tr").forEach(function(row,i){
+
+    if(i===0) return;
+
+    const td = row.querySelector("td:nth-child(12)");
+    if(!td) return;
+
+    td.style.cursor="pointer";
+
+    td.onclick=function(){
+        activeStateCell = td;
+        document.getElementById("state-popup").style.display="block";
+    };
+
+});
+
+
+// ===== METROLOGY COLUMN (13) =====
+document.querySelectorAll("#sikn-table tr").forEach(function(row,i){
+
+    if(i===0) return;
+
+    const td = row.querySelector("td:nth-child(13)");
+    if(!td) return;
+
+    td.style.cursor="pointer";
+
+    td.onclick=function(){
+        activeMetCell = td;
+        document.getElementById("metrology-popup").style.display="block";
+    };
+
+});
+
 // ===== LOGIN LOGIC =====
 
 function getCookie(name){
