@@ -864,6 +864,24 @@ if(i===0) return;
 
     const td = row.children[5];
 
+// ===== RANGE AFTER VERIFY COLUMN (7 столбец) =====
+document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
+
+    if(i===0) return;
+
+    const td = row.children[6];
+
+    if(!td) return;
+
+    td.style.cursor = "pointer";
+
+    td.onclick = function(){
+        activeCell = td;
+        document.getElementById("range-popup").style.display="block";
+    };
+
+});
+
     if(!td) return;
 
     td.style.cursor = "pointer";
