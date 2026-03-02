@@ -990,6 +990,34 @@ fetch("/save_cell",{
     document.getElementById("scheme-popup").style.display="none";
 };
 
+// ===== SCHEME COLUMN (10) =====
+document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
+
+    if(i===0) return;
+
+    const td = row.children[9]; // 10 столбец
+
+    if(!td) return;
+
+    td.style.cursor="pointer";
+
+    td.onclick = function(){
+
+        activeSchemeCell = td;
+
+        const current = td.innerText.trim();
+
+        if(current){
+            document.getElementById("scheme-select").value = current;
+        }else{
+            document.getElementById("scheme-select").selectedIndex = 0;
+        }
+
+        document.getElementById("scheme-popup").style.display="block";
+    };
+
+});
+
 // ===== VERIFY COLUMN (11) =====
 let activeVerifyCell = null;
 
