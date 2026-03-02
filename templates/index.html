@@ -891,21 +891,28 @@ document.getElementById("range-cancel").onclick=function(){
     document.getElementById("range-popup").style.display="none";
 };
 
-document.getElementById("il-count").onchange=function(){
 
-    const count = parseInt(this.value);
-    const box = document.getElementById("il-container");
-    box.innerHTML="";
-
-    for(let i=1;i<=count;i++){
-        const div=document.createElement("div");
-        div.innerHTML='<label>ИЛ'+i+':</label><br><input type="text" class="il-input" style="width:100%; margin-bottom:6px;">';
-        box.appendChild(div);
-    }
-
-};
 
 document.getElementById("range-save").onclick=function(){
+
+    const val = document.getElementById("att-range-input").value;
+
+    if(activeCell){
+        activeCell.innerHTML = val;
+
+        fetch("/save_cell",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                row: activeCell.parentElement.rowIndex,
+                col: activeCell.cellIndex,
+                value: val
+            })
+        });
+    }
+
+    document.getElementById("range-popup").style.display="none";
+};
 
 
 
@@ -1016,7 +1023,7 @@ document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
 
         activeVerifyCell = td;
 
-        const rangeCell = row.children[6];
+        const rangeCell = row.children[5];
         const text = rangeCell ? rangeCell.innerText : "";
 
         const matches = text.match(/ИЛ\d+/g);
