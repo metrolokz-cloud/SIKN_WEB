@@ -871,16 +871,14 @@ fetch("/load_cells")
 let activeCell = null;
 let activeSchemeCell = null;
 
-// ===== RANGE COLUMN (7) =====
-document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
-
-    if(i===0) return;
+// ===== RANGE COLUMN (Аттестованный диапазон) =====
+document.querySelectorAll("#sikn-table tr[data-row]").forEach((row)=>{
 
     const td = row.children[5];
 
     if(!td) return;
 
-    td.classList.add("range-cell");
+    td.style.cursor = "pointer";
 
     td.onclick = function(){
         activeCell = td;
