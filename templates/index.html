@@ -1428,14 +1428,14 @@ if(document.getElementById("range-after-popup").style.display === "block"){
 });
 
 // ===== CLEAR CELL (ПКМ) =====
-document.querySelectorAll("#sikn-table td").forEach(td=>{
+document.querySelectorAll("#sikn-table td").forEach(function(td){
 
     td.addEventListener("contextmenu", function(e){
 
-        // только редактируемые столбцы
         const col = td.cellIndex;
 
-        if(col<6) return; // первые служебные не трогаем
+        // запрещаем очистку только служебных колонок 0-5
+        if(col <= 5) return;
 
         e.preventDefault();
 
@@ -1445,8 +1445,8 @@ document.querySelectorAll("#sikn-table td").forEach(td=>{
 
         const row = td.parentElement;
 
-        // убрать синий цвет если это состояние
-        if(col===11){
+        // если очищаем состояние (12 колонка)
+        if(col === 11){
             row.classList.remove("blue-row");
         }
 
@@ -1455,7 +1455,7 @@ document.querySelectorAll("#sikn-table td").forEach(td=>{
             headers:{"Content-Type":"application/json"},
             body:JSON.stringify({
                 row: row.rowIndex,
-                col: td.cellIndex,
+                col: col,
                 value: ""
             })
         });
