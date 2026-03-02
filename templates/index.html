@@ -1697,6 +1697,32 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row,i){
 
 });
 
+// ===== STATE + METROLOGY CLICK FIX =====
+document.querySelectorAll("#sikn-table tr[data-row]").forEach(function(row){
+
+    // 12 столбец — состояние СИКН
+    const stateTd = row.querySelector("td:nth-child(12)");
+    if(stateTd){
+        stateTd.style.cursor = "pointer";
+        stateTd.onclick = function(){
+            activeStateCell = stateTd;
+            document.getElementById("state-popup").style.display = "block";
+        };
+    }
+
+    // 13 столбец — метрология
+    const metTd = row.querySelector("td:nth-child(13)");
+    if(metTd){
+        metTd.style.cursor = "pointer";
+        metTd.onclick = function(){
+            activeMetCell = metTd;
+            document.getElementById("metrology-popup").style.display = "block";
+        };
+    }
+
+});
+
+
 // ===== LOGIN LOGIC =====
 
 function getCookie(name){
@@ -1730,6 +1756,8 @@ if(user){
         });
     }
 }
+
+
 
 
 
