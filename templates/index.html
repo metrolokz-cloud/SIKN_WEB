@@ -1646,6 +1646,35 @@ document.getElementById("after-save").onclick=function(){
     document.getElementById("range-after-popup").style.display="none";
 };
 
+// ===== SCHEME COLUMN FIX =====
+document.querySelectorAll("#sikn-table tr").forEach(function(row){
+
+    const cells = row.querySelectorAll("td");
+
+    if(cells.length < 10) return;
+
+    const td = cells[9];
+
+    td.style.cursor = "pointer";
+
+    td.onclick = function(){
+
+        activeSchemeCell = td;
+
+        const select = document.getElementById("scheme-select");
+        const current = td.innerText.trim();
+
+        if(current){
+            select.value = current;
+        }else{
+            select.selectedIndex = 0;
+        }
+
+        document.getElementById("scheme-popup").style.display = "block";
+    };
+
+});
+
 // ===== LOGIN LOGIC =====
 
 function getCookie(name){
