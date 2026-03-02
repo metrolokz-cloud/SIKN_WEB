@@ -1070,7 +1070,7 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row,i){
         if(afterCell){
 
             const html = afterCell.innerHTML;
-            const matches = html.match(/Диапазон ИЛ\d+/g);
+            const matches = html.match(/Диапазон ИЛ\s*\d+/g);
 
             if(matches){
                 matches.forEach(function(name){
