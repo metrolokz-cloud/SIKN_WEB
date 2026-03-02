@@ -1052,71 +1052,49 @@ document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
 });
 
 // ===== VERIFY COLUMN (11) =====
-let activeVerifyCell = null;
-
-let activeStateCell = null;
-let activeMetCell = null;
-
-document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
-
-    if(i===0) return;
-
-    const td = row.children[12];
-
-    if(!td) return;
-
-    td.onclick = function(){
-        activeMetCell = td;
-        document.getElementById("metrology-popup").style.display="block";
-    };
-
-});
-
-document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
-
-    if(i===0) return;
-
-    const td = row.children[11];
-
-    if(!td) return;
-
-    td.onclick = function(){
-        activeStateCell = td;
-        document.getElementById("state-popup").style.display="block";
-    };
-
-});
-
 document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
 
     if(i===0) return;
 
     const td = row.querySelector("td:nth-child(11)");
-
     if(!td) return;
 
     td.onclick = function(){
 
         activeVerifyCell = td;
 
-        const rangeCell = row.children[5];
-        const text = rangeCell ? rangeCell.innerText : "";
-
-        const matches = text.match(/ИЛ\d+/g);
+        const afterCell = row.querySelector("td:nth-child(7)");
+        const text = afterCell ? afterCell.innerText : "";
 
         const box = document.getElementById("verify-il-container");
         box.innerHTML="";
+
+        const matches = text.match(/ИЛ\d+/g);
 
         if(matches){
             matches.forEach((name)=>{
                 const div=document.createElement("div");
                 div.style.marginTop="10px";
-                div.innerHTML='<label>Дата поверки ПР '+name+':</label><br><input type="text" class="custom-date verify-il" autocomplete="off" style="width:100%;">';
+                div.innerHTML=
+                    '<label>Дата поверки ПР '+name+':</label><br>'+
+                    '<input type="text" class="custom-date verify-il" autocomplete="off" style="width:100%;">';
                 box.appendChild(div);
             });
         }
 
         document.getElementById("verify-popup").style.display="block";
+
+        setTimeout(function(){
+            document.querySelectorAll(".verify-il").forEach(function(input){
+                flatpickr(input,{
+                    locale:"ru",
+                    dateFormat:"d.m.Y",
+                    allowInput:true,
+                    disableMobile:true
+                });
+            });
+        },100);
+
     };
 
 });
