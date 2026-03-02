@@ -789,6 +789,39 @@ cursor:pointer;
 </div>
 
 </div>
+
+<div id="range-after-popup" class="popup">
+
+<div class="popup-title">Диапазон после последней поверки СИКН</div>
+
+<div>
+<label>Диапазон СИКН:</label>
+<input type="text" id="after-sikn">
+</div>
+
+<div>
+<label>Количество ИЛ:</label>
+<select id="after-il-count">
+<option value="0">0</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+</select>
+</div>
+
+<div id="after-il-container"></div>
+
+<div class="popup-actions">
+<button id="after-save">Сохранить</button>
+<button id="after-cancel">Отмена</button>
+</div>
+
+</div>
 <div id="metrology-popup" class="popup">
 
 <div class="popup-title">Номер сертификата о метрологической аттестации</div>
@@ -875,6 +908,26 @@ if(td6){
     };
 }
        
+});
+
+// ===== RANGE AFTER COLUMN (7) =====
+let activeAfterCell = null;
+
+document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
+
+    if(i===0) return;
+
+    const td7 = row.querySelector("td:nth-child(7)");
+
+    if(!td7) return;
+
+    td7.style.cursor="pointer";
+
+    td7.onclick=function(){
+        activeAfterCell = td7;
+        document.getElementById("range-after-popup").style.display="block";
+    };
+
 });
 
 
@@ -1277,6 +1330,11 @@ if(e.key === "Escape"){
         document.getElementById("met-cancel").click();
     }
 
+if(document.getElementById("range-after-popup").style.display === "block"){
+    document.getElementById("after-cancel").click();
+}
+
+
     return;
 }
 
@@ -1311,6 +1369,13 @@ if(document.getElementById("metrology-popup").style.display === "block"){
     document.getElementById("met-save").click();
     return;
 }
+
+if(document.getElementById("range-after-popup").style.display === "block"){
+    document.getElementById("after-save").click();
+    return;
+}
+
+
 
 });
 
@@ -1468,6 +1533,57 @@ document.querySelectorAll(".custom-date").forEach(function(input){
     });
 
 });
+
+document.getElementById("after-il-count").onchange=function(){
+
+    const count = parseInt(this.value);
+    const box = document.getElementById("after-il-container");
+    box.innerHTML="";
+
+    for(let i=1;i<=count;i++){
+        const div=document.createElement("div");
+        div.innerHTML='<label>Диапазон ИЛ '+i+':</label><input type="text" class="after-il">';
+        box.appendChild(div);
+    }
+};
+
+document.getElementById("after-cancel").onclick=function(){
+    document.getElementById("range-after-popup").style.display="none";
+};
+
+document.getElementById("after-save").onclick=function(){
+
+    const sikn = document.getElementById("after-sikn").value;
+    const ils = document.querySelectorAll(".after-il");
+
+    let text="";
+
+    if(sikn){
+        text+="Диапазон СИКН: "+sikn+"<br>";
+    }
+
+    ils.forEach((el,i)=>{
+        if(el.value){
+            text+="Диапазон ИЛ"+(i+1)+": "+el.value+"<br>";
+        }
+    });
+
+    if(activeAfterCell){
+        activeAfterCell.innerHTML=text;
+
+        fetch("/save_cell",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                row: activeAfterCell.parentElement.rowIndex,
+                col: activeAfterCell.cellIndex,
+                value: text
+            })
+        });
+    }
+
+    document.getElementById("range-after-popup").style.display="none";
+};
 
 // ===== LOGIN LOGIC =====
 
