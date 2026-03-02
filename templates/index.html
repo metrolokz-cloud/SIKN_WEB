@@ -858,8 +858,7 @@ fetch("/load_cells")
 let activeCell = null;
 let activeSchemeCell = null;
 
-// ===== RANGE AFTER VERIFY COLUMN (7 столбец) =====
-document.querySelectorAll("#sikn-table tr[data-row]").forEach(row=>{
+
 
     const td = row.children[6];
 
@@ -874,56 +873,31 @@ document.querySelectorAll("#sikn-table tr[data-row]").forEach(row=>{
 
 });
 
-// ===== RANGE COLUMN (Аттестованный диапазон) =====
-document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
-if(i===0) return;
-
-    const td = row.children[5];
-
-// ===== RANGE AFTER VERIFY COLUMN (7 столбец) =====
+// ===== RANGE COLUMNS (6 и 7 столбец) =====
 document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
 
     if(i===0) return;
+    if(row.children.length !== 13) return;
 
-    const td = row.children[6];
+    // 6 столбец
+    let td1 = row.children[5];
+    if(td1){
+        td1.style.cursor = "pointer";
+        td1.onclick = function(){
+            activeCell = td1;
+            document.getElementById("range-popup").style.display="block";
+        };
+    }
 
-    if(!td) return;
-
-    td.style.cursor = "pointer";
-
-    td.onclick = function(){
-        activeCell = td;
-        document.getElementById("range-popup").style.display="block";
-    };
-
-});
-
-    if(!td) return;
-
-    td.style.cursor = "pointer";
-
-    td.onclick = function(){
-        activeCell = td;
-        document.getElementById("range-popup").style.display="block";
-    };
-
-});
-
-// ===== SCHEME COLUMN (10) =====
-document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
-
-    if(i===0) return;
-
-    const td = row.children[9];
-
-    if(!td) return;
-
-    td.classList.add("scheme-cell");
-
-    td.onclick = function(){
-        activeSchemeCell = td;
-        document.getElementById("scheme-popup").style.display="block";
-    };
+    // 7 столбец
+    let td2 = row.children[6];
+    if(td2){
+        td2.style.cursor = "pointer";
+        td2.onclick = function(){
+            activeCell = td2;
+            document.getElementById("range-popup").style.display="block";
+        };
+    }
 
 });
 
