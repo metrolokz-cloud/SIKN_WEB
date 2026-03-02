@@ -835,26 +835,35 @@ fetch("/load_cells")
 });
 */
 
-    data.forEach(c=>{
-    const row=document.getElementById("sikn-table").rows[c.row];
-    if(!row) return;
-    const td=row.cells[c.col];
-    if(!td) return;
+fetch("/load_cells")
+.then(r => r.json())
+.then(data => {
 
-    td.innerHTML=c.value;
+    data.forEach(c => {
 
-    // вернуть синий цвет строки
-    if(c.col===11 && c.value.includes("выведена")){
-        row.classList.add("blue-row");
-    }
+        const row = document.getElementById("sikn-table").rows[c.row];
+        if(!row) return;
 
-    // вернуть цвет дат поверки
-    if(c.col===10){
-        checkVerifyColors(td);
-    }
+        const td = row.cells[c.col];
+        if(!td) return;
+
+        td.innerHTML = c.value;
+
+        if(c.col === 11 && c.value.includes("выведена")){
+            row.classList.add("blue-row");
+        }
+
+        if(c.col === 10){
+            checkVerifyColors(td);
+        }
+
+    });
+
+})
+.catch(err => {
+    console.error("Ошибка загрузки данных:", err);
 });
 
-});
 
 let activeCell = null;
 let activeSchemeCell = null;
