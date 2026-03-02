@@ -937,6 +937,39 @@ document.getElementById("range-cancel").onclick=function(){
     document.getElementById("range-popup").style.display="none";
 };
 
+// ===== SCHEME COLUMN (10) =====
+document.querySelectorAll("#sikn-table tr").forEach(function(row,i){
+
+    if(i===0) return;
+
+    const cells = row.querySelectorAll("td");
+
+    if(cells.length < 10) return;
+
+    const td = cells[9]; // 10 столбец
+
+    td.style.cursor = "pointer";
+
+    td.addEventListener("click", function(){
+
+        activeSchemeCell = td;
+
+        const current = td.innerText.trim();
+
+        const select = document.getElementById("scheme-select");
+
+        if(current){
+            select.value = current;
+        }else{
+            select.selectedIndex = 0;
+        }
+
+        document.getElementById("scheme-popup").style.display = "block";
+
+    });
+
+});
+
 
 
 document.getElementById("range-save").onclick=function(){
