@@ -916,38 +916,7 @@ document.getElementById("range-save").onclick=function(){
 
 
 
-    const sikn=document.getElementById("sikn-range-input").value;
-    const ils=document.querySelectorAll(".il-input");
-
-    let text="";
-
-    if(sikn){
-        text+=sikn+" по СИКН<br><br>";
-    }
-
-    ils.forEach((el,i)=>{
-        if(el.value){
-            text+=el.value+" по ИЛ"+(i+1)+"<br>";
-        }
-    });
-
-    if(activeCell){
-        activeCell.innerHTML=text;
-
-fetch("/save_cell",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-        row: activeCell.parentElement.rowIndex,
-        col: activeCell.cellIndex,
-        value: text
-    })
-});
-    }
-
-    document.getElementById("range-popup").style.display="none";
-
-};
+  
 
 // ===== SCHEME POPUP =====
 document.getElementById("scheme-cancel").onclick=function(){
