@@ -823,9 +823,17 @@ cursor:pointer;
 
 <script>
 
+/*
 fetch("/load_cells")
 .then(r=>r.json())
 .then(data=>{
+
+    data.forEach(c=>{
+        ...
+    });
+
+});
+*/
 
     data.forEach(c=>{
     const row=document.getElementById("sikn-table").rows[c.row];
