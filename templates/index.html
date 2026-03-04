@@ -24,7 +24,7 @@ body{
 #sikn-table th:nth-child(4), #sikn-table td:nth-child(4){ width:200px; }  /* Владелец СИКН */
 #sikn-table th:nth-child(5), #sikn-table td:nth-child(5){ width:180px; }  /* Грузоотправители */
 #sikn-table th:nth-child(6), #sikn-table td:nth-child(6){ width:150px; }  /* Аттестованный диапазон */
-#sikn-table th:nth-child(7), #sikn-table td:nth-child(7){ width:130px; }  /* Диапазон после поверки */
+#sikn-table th:nth-child(7), #sikn-table td:nth-child(7){ width:160px; }  /* Диапазон после поверки */
 #sikn-table th:nth-child(8), #sikn-table td:nth-child(8){ width:200px; }  /* Тип соединения */
 #sikn-table th:nth-child(9), #sikn-table td:nth-child(9){ width:200px; }  /* Передача к СДКУ */
 #sikn-table th:nth-child(10), #sikn-table td:nth-child(10){ width:180px; } /* Способ сдачи нефти */
@@ -231,6 +231,8 @@ tr:hover td{
 
 /* ===== TOGGLE TECH COLUMNS ===== */
 
+.hide-tech #sikn-table th:nth-child(5),
+.hide-tech #sikn-table td:nth-child(5),
 .hide-tech #sikn-table th:nth-child(8),
 .hide-tech #sikn-table td:nth-child(8),
 .hide-tech #sikn-table th:nth-child(9),
@@ -957,11 +959,23 @@ document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
 
         const ilValues = [];
 
+                let waitSikn = false;
+        let waitIlNum = null;
+
         lines.forEach(function(line){
 
-            let m = line.match(/^Диапазон СИКН:\s*(.+)$/i);
+            let m = line.match(/^Диапазон СИКН\s*:\s*(.+)$/i);
             if(m){
                 siknInput.value = m[1].trim();
+                waitSikn = false;
+                waitIlNum = null;
+                return;
+            }
+
+            m = line.match(/^Диапазон СИКН\s*:?\s*$/i);
+            if(m){
+                waitSikn = true;
+                waitIlNum = null;
                 return;
             }
 
@@ -971,9 +985,32 @@ document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
                 if(n >= 1 && n <= 8){
                     ilValues[n - 1] = m[2].trim();
                 }
+                waitSikn = false;
+                waitIlNum = null;
+                return;
             }
 
-        });
+            m = line.match(/^Диапазон ИЛ\s*(\d+)\s*:?\s*$/i);
+            if(m){
+                const n = parseInt(m[1], 10);
+                waitSikn = false;
+                waitIlNum = (n >= 1 && n <= 8) ? n : null;
+                return;
+            }
+
+            if(waitSikn){
+                siknInput.value = line.trim();
+                waitSikn = false;
+                return;
+            }
+
+            if(waitIlNum !== null){
+                ilValues[waitIlNum - 1] = line.trim();
+                waitIlNum = null;
+                return;
+            }
+
+        });});
 
         // определяем, сколько ИЛ показать
         let count = 0;
@@ -1749,7 +1786,7 @@ document.getElementById("after-save").onclick=function(){
                 firstIlShown = true;
             }
 
-            text+="Диапазон ИЛ"+(i+1)+": "+el.value+"<br>";
+                        text+="Диапазон ИЛ"+(i+1)+"<br>"+el.value+"<br>";
         }
     });
 
