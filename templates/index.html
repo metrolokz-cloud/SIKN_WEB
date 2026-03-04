@@ -23,8 +23,8 @@ body{
 #sikn-table th:nth-child(3), #sikn-table td:nth-child(3){ width:200px; }  /* Наименование ПСП */
 #sikn-table th:nth-child(4), #sikn-table td:nth-child(4){ width:200px; }  /* Владелец СИКН */
 #sikn-table th:nth-child(5), #sikn-table td:nth-child(5){ width:180px; }  /* Грузоотправители */
-#sikn-table th:nth-child(6), #sikn-table td:nth-child(6){ width:200px; }  /* Аттестованный диапазон */
-#sikn-table th:nth-child(7), #sikn-table td:nth-child(7){ width:250px; }  /* Диапазон после поверки */
+#sikn-table th:nth-child(6), #sikn-table td:nth-child(6){ width:160px; }  /* Аттестованный диапазон */
+#sikn-table th:nth-child(7), #sikn-table td:nth-child(7){ width:300px; }  /* Диапазон после поверки */
 #sikn-table th:nth-child(8), #sikn-table td:nth-child(8){ width:200px; }  /* Тип соединения */
 #sikn-table th:nth-child(9), #sikn-table td:nth-child(9){ width:200px; }  /* Передача к СДКУ */
 #sikn-table th:nth-child(10), #sikn-table td:nth-child(10){ width:180px; } /* Способ сдачи нефти */
@@ -1861,6 +1861,10 @@ document.getElementById("after-il-count").onchange=function(){
         div.innerHTML='<label>Диапазон ИЛ '+i+':</label><input type="text" class="after-il">';
         box.appendChild(div);
     }
+};
+
+document.getElementById("after-cancel").onclick=function(){
+    document.getElementById("range-after-popup").style.display="none";
 };
 
 document.getElementById("after-save").onclick=function(){
