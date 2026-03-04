@@ -1810,54 +1810,52 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row,i){
 });
 
 // ===== STATE + METROLOGY CLICK FIX =====
-document.querySelectorAll("#sikn-table tr[data-row]").forEach(function(row){
+document.querySelectorAll("#sikn-table tr").forEach(function(row){
 
     // 12 столбец — состояние СИКН
     const stateTd = row.querySelector("td:nth-child(12)");
     if(stateTd){
         stateTd.style.cursor = "pointer";
-                stateTd.onclick = function(){
+        stateTd.onclick = function(){
             activeStateCell = stateTd;
 
+            // очистка полей
             document.getElementById("state-status").value = "in";
             document.getElementById("state-date").value = "";
             document.getElementById("state-reason").value = "";
             document.getElementById("state-kmx-done").value = "";
             document.getElementById("state-kmx-plan").value = "";
 
-            const text = (stateTd.innerText || "").replace(/\r/g, "");
-            const lines = text.split("\n").map(x => x.trim()).filter(Boolean);
+            // берём текст ячейки и убираем переносы строк
+            const text = (stateTd.innerText || "")
+                .replace(/\r/g, " ")
+                .replace(/\n+/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
 
-            lines.forEach(function(line){
+            let m = text.match(/СИКН в учетных операциях с\s*(\d{2}\.\d{2}\.\d{4})/i);
+            if(m){
+                document.getElementById("state-status").value = "in";
+                document.getElementById("state-date").value = m[1];
+            }
 
-                let m = line.match(/^СИКН в учетных операциях с\s*(\d{2}\.\d{2}\.\d{4})\s*г\./i);
-                if(m){
-                    document.getElementById("state-status").value = "in";
-                    document.getElementById("state-date").value = m[1];
-                    return;
-                }
+            m = text.match(/СИКН выведена из учетных операций с\s*(\d{2}\.\d{2}\.\d{4})/i);
+            if(m){
+                document.getElementById("state-status").value = "out";
+                document.getElementById("state-date").value = m[1];
+            }
 
-                m = line.match(/^СИКН выведена из учетных операций с\s*(\d{2}\.\d{2}\.\d{4})\s*г\./i);
-                if(m){
-                    document.getElementById("state-status").value = "out";
-                    document.getElementById("state-date").value = m[1];
-                    return;
-                }
+            m = text.match(/Последний КМХ проведен\s*(\d{2}\.\d{2}\.\d{4})/i);
+            if(m){
+                document.getElementById("state-kmx-done").value = m[1];
+            }
 
-                m = line.match(/^Последний КМХ проведен\s*(\d{2}\.\d{2}\.\d{4})\s*г\./i);
-                if(m){
-                    document.getElementById("state-kmx-done").value = m[1];
-                    return;
-                }
+            m = text.match(/Планируемый срок КМХ\s*-\s*(\d{2}\.\d{2}\.\d{4})/i);
+            if(m){
+                document.getElementById("state-kmx-plan").value = m[1];
+            }
 
-                m = line.match(/^Планируемый срок КМХ\s*-\s*(\d{2}\.\d{2}\.\d{4})\s*г\./i);
-                if(m){
-                    document.getElementById("state-kmx-plan").value = m[1];
-                    return;
-                }
-
-            });
-
+            // показать/скрыть строку с причиной и поменять подпись даты
             document.getElementById("state-status").onchange();
 
             document.getElementById("state-popup").style.display = "block";
@@ -1868,46 +1866,43 @@ document.querySelectorAll("#sikn-table tr[data-row]").forEach(function(row){
     const metTd = row.querySelector("td:nth-child(13)");
     if(metTd){
         metTd.style.cursor = "pointer";
-                metTd.onclick = function(){
+        metTd.onclick = function(){
             activeMetCell = metTd;
 
+            // очистка полей
             document.getElementById("met-cert").value = "";
             document.getElementById("met-reg").value = "";
             document.getElementById("met-date").value = "";
             document.getElementById("met-expire").value = "";
 
-            const text = (metTd.innerText || "").replace(/\r/g, "");
-            const lines = text.split("\n").map(x => x.trim()).filter(Boolean);
+            // берём текст ячейки и убираем переносы строк
+            const text = (metTd.innerText || "")
+                .replace(/\r/g, " ")
+                .replace(/\n+/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
 
-            lines.forEach(function(line){
+            let m = text.match(/Сертификат о метрологической аттестации №\s*(.+?)(?:,\s*регистрационный номер|$)/i);
+            if(m){
+                document.getElementById("met-cert").value = m[1].trim();
+            }
 
-                let m = line.match(/^Сертификат о метрологической аттестации №(.+?)(?:,)?$/i);
-                if(m){
-                    document.getElementById("met-cert").value = m[1].trim();
-                    return;
-                }
+            m = text.match(/регистрационный номер в реестре ГСИ РК\s+(.+?)\s+от\s+(\d{2}\.\d{2}\.\d{4})/i);
+            if(m){
+                document.getElementById("met-reg").value = m[1].trim();
+                document.getElementById("met-date").value = m[2];
+            }
 
-                m = line.match(/^регистрационный номер в реестре ГСИ РК\s+(.+?)\s+от\s+(\d{2}\.\d{2}\.\d{4})\s*г\./i);
-                if(m){
-                    document.getElementById("met-reg").value = m[1].trim();
-                    document.getElementById("met-date").value = m[2];
-                    return;
-                }
-
-                m = line.match(/^Срок действия МВИ СИКН\s*[–-]\s*(\d{2}\.\d{2}\.\d{4})\s*г\./i);
-                if(m){
-                    document.getElementById("met-expire").value = m[1];
-                    return;
-                }
-
-            });
+            m = text.match(/Срок действия МВИ СИКН\s*[–-]\s*(\d{2}\.\d{2}\.\d{4})/i);
+            if(m){
+                document.getElementById("met-expire").value = m[1];
+            }
 
             document.getElementById("metrology-popup").style.display = "block";
         };
     }
 
 });
-
 
 // ===== LOGIN LOGIC =====
 
