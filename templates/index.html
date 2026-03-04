@@ -23,7 +23,7 @@ body{
 #sikn-table th:nth-child(3), #sikn-table td:nth-child(3){ width:200px; }  /* Наименование ПСП */
 #sikn-table th:nth-child(4), #sikn-table td:nth-child(4){ width:200px; }  /* Владелец СИКН */
 #sikn-table th:nth-child(5), #sikn-table td:nth-child(5){ width:180px; }  /* Грузоотправители */
-#sikn-table th:nth-child(6), #sikn-table td:nth-child(6){ width:150px; }  /* Аттестованный диапазон */
+#sikn-table th:nth-child(6), #sikn-table td:nth-child(6){ width:200px; }  /* Аттестованный диапазон */
 #sikn-table th:nth-child(7), #sikn-table td:nth-child(7){ width:250px; }  /* Диапазон после поверки */
 #sikn-table th:nth-child(8), #sikn-table td:nth-child(8){ width:200px; }  /* Тип соединения */
 #sikn-table th:nth-child(9), #sikn-table td:nth-child(9){ width:200px; }  /* Передача к СДКУ */
@@ -388,6 +388,9 @@ tr:hover td{
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver/dist/FileSaver.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script>
 
 
@@ -1636,68 +1639,162 @@ document.querySelectorAll("#sikn-table td").forEach(function(td){
 });
 
 // ===== EXPORT TO EXCEL =====
-document.getElementById("export-excel").onclick=function(){
+document.getElementById("export-excel").onclick=async function(){
 
     const table = document.getElementById("sikn-table").cloneNode(true);
 
-    // === применяем стиль для Excel ===
-    table.setAttribute("border","1");
-    table.style.borderCollapse="collapse";
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("СИКН");
 
-table.querySelectorAll("th,td").forEach(td=>{
-    td.style.border="1px solid black";
-    td.style.textAlign="center";
-    td.style.verticalAlign="middle";
-    td.style.fontFamily="Times New Roman";
-});
+    // таблица -> xlsx
+    const rows = Array.from(table.querySelectorAll("tr"));
 
-table.querySelectorAll("th").forEach(th=>{
-    th.style.fontSize="14pt";
-    th.style.fontWeight="bold";
-});
+    rows.forEach((tr, rIndex)=>{
+        const excelRow = ws.getRow(rIndex + 1);
 
-    // сохранить цвета строк
-    table.querySelectorAll(".blue-row td").forEach(td=>{
-        td.style.background="#4a7bd1";
-        td.style.color="#ffffff";
+        let cIndex = 1;
+
+        Array.from(tr.children).forEach(cellEl=>{
+
+            // пропускаем занятые ячейки (после merge)
+            while(excelRow.getCell(cIndex).value !== null){
+                cIndex++;
+            }
+
+            const td = cellEl;
+            const colspan = parseInt(td.getAttribute("colspan") || "1", 10);
+            const rowspan = parseInt(td.getAttribute("rowspan") || "1", 10);
+
+            // текст с переносами
+            let text = td.innerText || "";
+            text = text.replace(/\r/g, "").trim();
+
+            const cell = excelRow.getCell(cIndex);
+            cell.value = text;
+
+            // базовое оформление
+            cell.font = {
+                name: "Times New Roman",
+                size: td.tagName === "TH" ? 14 : 12,
+                bold: td.tagName === "TH"
+            };
+
+            cell.alignment = {
+                vertical: "middle",
+                horizontal: "center",
+                wrapText: true
+            };
+
+            cell.border = {
+                top:    { style: "thin", color: { argb: "FF000000" } },
+                left:   { style: "thin", color: { argb: "FF000000" } },
+                bottom: { style: "thin", color: { argb: "FF000000" } },
+                right:  { style: "thin", color: { argb: "FF000000" } }
+            };
+
+            // шапка
+            if(td.tagName === "TH"){
+                cell.fill = {
+                    type: "pattern",
+                    pattern: "solid",
+                    fgColor: { argb: "FFF0F3F7" }
+                };
+            }
+
+            // серая строка-разделитель (colspan=13)
+            if(colspan === 13){
+                cell.font = {
+                    name: "Times New Roman",
+                    size: 14,
+                    bold: true
+                };
+                cell.fill = {
+                    type: "pattern",
+                    pattern: "solid",
+                    fgColor: { argb: "FFE9E9E9" }
+                };
+            }
+
+            // синяя строка
+            if(td.closest("tr") && td.closest("tr").classList.contains("blue-row")){
+                cell.fill = {
+                    type: "pattern",
+                    pattern: "solid",
+                    fgColor: { argb: "FF4A7BD1" }
+                };
+                cell.font = {
+                    name: "Times New Roman",
+                    size: td.tagName === "TH" ? 14 : 12,
+                    bold: td.tagName === "TH",
+                    color: { argb: "FFFFFFFF" }
+                };
+            }
+
+            // красный/оранжевый текст (если в ячейке есть такие части)
+            if(td.querySelector(".date-red")){
+                cell.font = {
+                    name: "Times New Roman",
+                    size: td.tagName === "TH" ? 14 : 12,
+                    bold: true,
+                    color: { argb: "FFFF0000" }
+                };
+            }else if(td.querySelector(".date-orange")){
+                cell.font = {
+                    name: "Times New Roman",
+                    size: td.tagName === "TH" ? 14 : 12,
+                    bold: true,
+                    color: { argb: "FFFF7A00" }
+                };
+            }
+
+            // merge для colspan/rowspan
+            if(colspan > 1 || rowspan > 1){
+                ws.mergeCells(rIndex + 1, cIndex, rIndex + rowspan, cIndex + colspan - 1);
+
+                for(let rr = rIndex; rr < rIndex + rowspan; rr++){
+                    const row2 = ws.getRow(rr + 1);
+                    for(let cc = cIndex; cc < cIndex + colspan; cc++){
+                        if(rr === rIndex && cc === cIndex) continue;
+                        row2.getCell(cc).value = "__MERGED__";
+                    }
+                }
+            }
+
+            cIndex += colspan;
+        });
     });
 
-    // сохранить цвета дат
-    table.querySelectorAll(".date-red").forEach(el=>{
-        el.style.color="#ff0000";
-        el.style.fontWeight="bold";
+    // очистка служебных значений после merge
+    ws.eachRow(row=>{
+        row.eachCell(cell=>{
+            if(cell.value === "__MERGED__"){
+                cell.value = null;
+            }
+        });
     });
 
-    table.querySelectorAll(".date-orange").forEach(el=>{
-        el.style.color="#ff7a00";
-        el.style.fontWeight="bold";
-    });
+    // ширины колонок (примерно по текущей таблице)
+    ws.columns = [
+        { width: 6 },   // 1
+        { width: 6 },   // 2
+        { width: 28 },  // 3
+        { width: 28 },  // 4
+        { width: 26 },  // 5
+        { width: 20 },  // 6
+        { width: 22 },  // 7
+        { width: 26 },  // 8
+        { width: 26 },  // 9
+        { width: 24 },  // 10
+        { width: 42 },  // 11
+        { width: 42 },  // 12
+        { width: 42 }   // 13
+    ];
 
-    let html = `
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-body, table, th, td {
-    font-family: "Times New Roman";
-}
-</style>
-</head>
-
-<body>
-
-
-${table.outerHTML}
-
-</html>
-`;
-
-    const blob = new Blob([html], { type: "application/vnd.ms-excel" });
-
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "SIKN_WEB.xls";
-    a.click();
+    // файл
+    const buf = await wb.xlsx.writeBuffer();
+    saveAs(new Blob([buf], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }), "SIKN_WEB.xlsx");
 };
 
 // ===== TOGGLE TECH COLUMNS =====
