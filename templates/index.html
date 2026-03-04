@@ -157,8 +157,12 @@ tr:hover td{
     padding:12px !important;
 }
 
+#verify-sikn-int,
+#verify-pp-int,
+#verify-comp-int{
+    display:none !important;
+}
 
-#state-popup input,
 #state-popup select{
     font-size:26px !important;
     height:60px !important;
@@ -1125,9 +1129,9 @@ document.getElementById("verify-save").onclick=function(){
 
     const sikn = document.getElementById("verify-sikn").value;
 
-const siknInt = document.getElementById("verify-sikn-int").value;
-
-   text+="Поверка СИКН выполнена - "+fmt(sikn)+" г. ("+siknInt+" г.)<br>";
+    if(sikn){
+        text+="Поверка СИКН выполнена - "+fmt(sikn)+" г.<br>";
+    }
 
     const ils = document.querySelectorAll(".verify-il");
     ils.forEach((el,i)=>{
@@ -1137,52 +1141,47 @@ const siknInt = document.getElementById("verify-sikn-int").value;
     });
 
     const pp = document.getElementById("verify-pp").value;
-
-const ppInt = document.getElementById("verify-pp-int").value;
     if(pp){
-        text+="Поверка ПП выполнена - "+fmt(pp)+" г. ("+ppInt+" г.)<br>";
+        text+="Поверка ПП выполнена - "+fmt(pp)+" г.<br>";
     }
 
     const tpu = document.getElementById("verify-tpu").value;
+    const tpuInt = document.getElementById("verify-tpu-int").value;
 
-const tpuInt = document.getElementById("verify-tpu-int").value;
+    let tpuIntText = "";
+    if(tpuInt){
+        let word = "года";
+        if(tpuInt === "1") word = "год";
+        if(tpuInt === "5") word = "лет";
+        tpuIntText = " (межп. " + tpuInt + " " + word + ")";
+    }
+
     if(tpu){
-        text+="Поверка ТПУ выполнена - "+fmt(tpu)+" г. ("+tpuInt+" г.)<br>";
+        text+="Поверка ТПУ выполнена - "+fmt(tpu)+" г."+ tpuIntText +"<br>";
     }
 
     const comp = document.getElementById("verify-comp").value;
-
-const compInt = document.getElementById("verify-comp-int").value;
-
-
-
     if(comp){
-        text+="Поверка компьютеров расхода выполнена - "+fmt(comp)+" г. ("+compInt+" г.)<br>";
+        text+="Поверка компьютеров расхода выполнена - "+fmt(comp)+" г.<br>";
     }
 
-
-
     if(activeVerifyCell){
-        activeVerifyCell.innerHTML=text;checkVerifyColors(activeVerifyCell);
+        activeVerifyCell.innerHTML=text;
         checkVerifyColors(activeVerifyCell);
     }
 
-fetch("/save_cell",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-        row: activeVerifyCell.parentElement.rowIndex,
-        col: activeVerifyCell.cellIndex,
-        value: text
-    })
-});
+    fetch("/save_cell",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            row: activeVerifyCell.parentElement.rowIndex,
+            col: activeVerifyCell.cellIndex,
+            value: text
+        })
+    });
 
     document.getElementById("verify-popup").style.display="none";
 };
-
-
-
-document.getElementById("state-status").onchange=function(){
 
     const val=this.value;
     const block=document.getElementById("state-reason-block");
@@ -1310,14 +1309,16 @@ function checkVerifyColors(cell){
 
     if(!cell) return;
 
-    // берем ЧИСТЫЙ текст без span
     let text = cell.innerText;
 
     const today = new Date();
     today.setHours(0,0,0,0);
-    
 
-    const regex = /(\d{2}\.\d{2}\.\d{4}) г\.\s*\((\d)\s*г\.\)/g;
+    // Поддержка вариантов:
+    // 1) "01.01.2026 г."
+    // 2) "01.01.2026 г. (2 г.)"
+    // 3) "01.01.2026 г. (межп. 2 года)"
+    const regex = /(\d{2}\.\d{2}\.\d{4}) г\.(?:\s*\((?:межп\.\s*)?(\d)\s*(?:г\.|год|года|лет)\))?/g;
 
     let newHTML = text.replace(/\n/g,"<br>");
 
@@ -1326,7 +1327,7 @@ function checkVerifyColors(cell){
     while((match = regex.exec(text)) !== null){
 
         const dateStr = match[1];
-        const years = parseInt(match[2]);
+        const years = parseInt(match[2] || "1", 10); // если интервал не указан — считаем 1 год
 
         const p = dateStr.split(".");
         let expire = new Date(p[2],p[1]-1,p[0]);
@@ -1351,7 +1352,6 @@ function checkVerifyColors(cell){
 
     cell.innerHTML = newHTML;
 }
-
 
 document.addEventListener("keydown", function(e){
 
