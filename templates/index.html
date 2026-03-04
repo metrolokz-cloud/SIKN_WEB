@@ -1416,6 +1416,8 @@ function checkVerifyColors(cell){
     cell.innerHTML = lines.join("<br>");
 }
 
+document.addEventListener("keydown", function(e){
+
 // === ESC закрывает popup ===
 if(e.key === "Escape"){
 
@@ -1443,10 +1445,9 @@ if(document.getElementById("range-after-popup").style.display === "block"){
     document.getElementById("after-cancel").click();
 }
 
-
     return;
 }
-
+    }
     if(e.key !== "Enter") return;
 
     // RANGE POPUP
