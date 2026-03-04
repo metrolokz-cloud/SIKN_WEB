@@ -1559,7 +1559,54 @@ function checkVerifyColors(cell){
     cell.innerHTML = lines.join("<br>");
 }
 
+let popupDragZ = 20000;
 
+document.querySelectorAll(".popup").forEach(function(popup){
+    let handle = popup.querySelector(".popup-title");
+    if(!handle){
+        handle = popup.querySelector("label");
+    }
+    if(!handle) return;
+
+    handle.style.cursor = "move";
+    handle.style.userSelect = "none";
+
+    let isDown = false;
+    let shiftX = 0;
+    let shiftY = 0;
+
+    handle.addEventListener("mousedown", function(e){
+        if(e.button !== 0) return;
+
+        const r = popup.getBoundingClientRect();
+
+        popup.style.left = r.left + "px";
+        popup.style.top = r.top + "px";
+        popup.style.transform = "none";
+        popup.style.margin = "0";
+        popup.style.zIndex = String(++popupDragZ);
+
+        isDown = true;
+        shiftX = e.clientX - r.left;
+        shiftY = e.clientY - r.top;
+
+        document.body.style.userSelect = "none";
+        e.preventDefault();
+    });
+
+    document.addEventListener("mousemove", function(e){
+        if(!isDown) return;
+
+        popup.style.left = (e.clientX - shiftX) + "px";
+        popup.style.top = (e.clientY - shiftY) + "px";
+    });
+
+    document.addEventListener("mouseup", function(){
+        if(!isDown) return;
+        isDown = false;
+        document.body.style.userSelect = "";
+    });
+});
 
 
 
@@ -1912,7 +1959,7 @@ document.getElementById("after-save").onclick=function(){
         if(el.value){
 
             if(!firstIlShown && sikn){
-                                text+='<div style="height:70px;"></div>';
+                text+='<div style="height:35px;"></div>';
                 firstIlShown = true;
             }
 
