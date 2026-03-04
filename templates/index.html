@@ -1066,32 +1066,97 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row,i){
     const td = row.querySelector("td:nth-child(11)");
     if(!td) return;
 
-    td.onclick = function(){
+        td.onclick = function(){
 
         activeVerifyCell = td;
 
-        const afterCell = row.querySelector("td:nth-child(7)");
+        // очистка полей
+        document.getElementById("verify-sikn").value = "";
+        document.getElementById("verify-pp").value = "";
+        document.getElementById("verify-tpu").value = "";
+        document.getElementById("verify-comp").value = "";
+        document.getElementById("verify-tpu-int").value = "";
+
+        const savedText = (td.innerText || "").replace(/\r/g,"");
+
+        // достаём даты из сохранённого текста
+        function pickDate(re){
+            const m = savedText.match(re);
+            return m ? m[1] : "";
+        }
+
+        const siknDate = pickDate(/Поверка СИКН выполнена\s*-\s*(\d{2}\.\d{2}\.\d{4})/);
+        const ppDate   = pickDate(/Поверка ПП выполнена\s*-\s*(\d{2}\.\d{2}\.\d{4})/);
+        const tpuDate  = pickDate(/Поверка ТПУ выполнена\s*-\s*(\d{2}\.\d{2}\.\d{4})/);
+        const compDate = pickDate(/Поверка компьютеров расхода выполнена\s*-\s*(\d{2}\.\d{2}\.\d{4})/);
+
+        if(siknDate) document.getElementById("verify-sikn").value = siknDate;
+        if(ppDate)   document.getElementById("verify-pp").value   = ppDate;
+        if(tpuDate)  document.getElementById("verify-tpu").value  = tpuDate;
+        if(compDate) document.getElementById("verify-comp").value = compDate;
+
+        // интервал ТПУ (если был сохранён)
+        let tpuInt = "";
+        let mInt = savedText.match(/Поверка ТПУ выполнена\s*-\s*\d{2}\.\d{2}\.\d{4}\s*г\.\s*\((?:межп\.\s*)?(\d)\s*(?:г\.|год|года|лет)\)/);
+        if(!mInt){
+            mInt = savedText.match(/\(межп\.\s*(\d)\s*(?:г\.|год|года|лет)\)/);
+        }
+        if(mInt) tpuInt = mInt[1];
+        if(tpuInt) document.getElementById("verify-tpu-int").value = tpuInt;
+
+        // ===== ПР ИЛ: создаём поля и подставляем сохранённые даты =====
         const box = document.getElementById("verify-il-container");
-        box.innerHTML="";
+        box.innerHTML = "";
 
-        if(afterCell){
+        // ищем все "Поверка ПР ИЛ N выполнена - ДД.ММ.ГГГГ"
+        const ilMap = {};
+        const ilRe = /Поверка ПР ИЛ\s*(\d+)\s*выполнена\s*-\s*(\d{2}\.\d{2}\.\d{4})/g;
+        let mm;
+        while((mm = ilRe.exec(savedText)) !== null){
+            ilMap[parseInt(mm[1],10)] = mm[2];
+        }
 
-            const html = afterCell.innerHTML;
-            const matches = html.match(/Диапазон ИЛ\s*\d+/g);
+        const ilNums = Object.keys(ilMap).map(x=>parseInt(x,10)).sort((a,b)=>a-b);
 
-            if(matches){
-                matches.forEach(function(name){
+        // если в сохранённом тексте есть ПР ИЛ — рисуем их
+        if(ilNums.length > 0){
 
-                    const num = name.replace("Диапазон ИЛ","");
+            ilNums.forEach(function(num){
 
-                    const div = document.createElement("div");
-                    div.style.marginTop="10px";
-                    div.innerHTML =
-                        '<label>Дата поверки ПР ИЛ'+num+':</label><br>'+
-                        '<input type="text" class="custom-date verify-il" autocomplete="off" style="width:100%;">';
+                const div = document.createElement("div");
+                div.style.marginTop = "10px";
+                div.innerHTML =
+                    '<label>Дата поверки ПР ИЛ'+num+':</label><br>'+
+                    '<input type="text" class="custom-date verify-il" autocomplete="off" style="width:100%;">';
 
-                    box.appendChild(div);
-                });
+                box.appendChild(div);
+
+                const inp = div.querySelector("input.verify-il");
+                if(inp) inp.value = ilMap[num] || "";
+            });
+
+        }else{
+            // иначе оставляем твою старую логику: количество по "Диапазон ИЛ"
+            const afterCell = row.querySelector("td:nth-child(7)");
+
+            if(afterCell){
+                const html = afterCell.innerHTML;
+                const matches = html.match(/Диапазон ИЛ\s*\d+/g);
+
+                if(matches){
+                    matches.forEach(function(name){
+
+                        const num = name.replace("Диапазон ИЛ","");
+
+                        const div = document.createElement("div");
+                        div.style.marginTop="10px";
+                        div.innerHTML =
+                            '<label>Дата поверки ПР ИЛ'+num+':</label><br>'+
+                            '<input type="text" class="custom-date verify-il" autocomplete="off" style="width:100%;">';
+
+                        box.appendChild(div);
+                    });
+                }
             }
         }
 
@@ -1108,7 +1173,7 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row,i){
             });
         },100);
 
-    };
+    };};
 
 });
 
@@ -1316,43 +1381,46 @@ function checkVerifyColors(cell){
     const today = new Date();
     today.setHours(0,0,0,0);
 
-    // Поддержка вариантов:
-    // 1) "01.01.2026 г."
-    // 2) "01.01.2026 г. (2 г.)"
-    // 3) "01.01.2026 г. (межп. 2 года)"
+        // красим всю строку целиком, где есть дата
     const regex = /(\d{2}\.\d{2}\.\d{4}) г\.(?:\s*\((?:межп\.\s*)?(\d)\s*(?:г\.|год|года|лет)\))?/g;
 
-    let newHTML = text.replace(/\n/g,"<br>");
+    // делаем HTML по строкам
+    let lines = (cell.innerText || "").split("\n");
 
-    let match;
+    const today = new Date();
+    today.setHours(0,0,0,0);
 
-    while((match = regex.exec(text)) !== null){
+    lines = lines.map(function(line){
 
-        const dateStr = match[1];
-        const years = parseInt(match[2] || "1", 10); // если интервал не указан — считаем 1 год
+        let m = line.match(regex);
+        if(!m) return line;
+
+        // берём первую дату из строки (в твоих строках обычно она одна)
+        const one = regex.exec(line);
+        regex.lastIndex = 0; // обязательно сбросить, потому что regex с /g/
+
+        if(!one) return line;
+
+        const dateStr = one[1];
+        const years = parseInt(one[2] || "1", 10);
 
         const p = dateStr.split(".");
-        let expire = new Date(p[2],p[1]-1,p[0]);
+        let expire = new Date(p[2], p[1]-1, p[0]);
+        expire.setFullYear(expire.getFullYear() + years);
 
-        expire.setFullYear(expire.getFullYear()+years);
-
-        const diff = Math.floor((expire.getTime()-today.getTime())/86400000);
+        const diff = Math.floor((expire.getTime() - today.getTime()) / 86400000);
 
         if(diff < 0){
-            newHTML = newHTML.replace(
-                dateStr+" г.",
-                '<span class="date-red">'+dateStr+' г.</span>'
-            );
+            return '<span class="date-red">' + line + '</span>';
         }
         else if(diff <= 10){
-            newHTML = newHTML.replace(
-                dateStr+" г.",
-                '<span class="date-orange">'+dateStr+' г.</span>'
-            );
+            return '<span class="date-orange">' + line + '</span>';
         }
-    }
 
-    cell.innerHTML = newHTML;
+        return line;
+    });
+
+    cell.innerHTML = lines.join("<br>");
 }
 
 document.addEventListener("keydown", function(e){
