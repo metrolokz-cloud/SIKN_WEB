@@ -761,7 +761,7 @@ cursor:pointer;
 
 <div id="state-popup" class="popup">
 
-<div style="font-weight:bold; margin-bottom:15px;">Текущее состояние СИКН</div>
+<div class="popup-title">Текущее состояние СИКН</div>
 
 <div>
 <label>Статус:</label><br>
@@ -779,6 +779,11 @@ cursor:pointer;
 <div id="state-reason-block" style="margin-top:10px; display:none;">
 <label>Причина вывода:</label><br>
 <input type="text" id="state-reason" style="width:100%;">
+</div>
+
+<div style="margin-top:10px;">
+<label>Примечание:</label><br>
+<input type="text" id="state-note" style="width:100%;">
 </div>
 
 <div style="margin-top:10px;">
@@ -1333,17 +1338,34 @@ document.getElementById("state-save").onclick=function(){
 
     const status=document.getElementById("state-status").value;
     const date=document.getElementById("state-date").value;
-    const reason=document.getElementById("state-reason").value;
+    const reason=document.getElementById("state-reason").value.trim();
+    const note=document.getElementById("state-note").value.trim();
     const kmxDone=document.getElementById("state-kmx-done").value;
     const kmxPlan=document.getElementById("state-kmx-plan").value;
 
     let text="";
 
-    if(status==="in"){
-    text+="СИКН в учетных операциях с "+fmt(date)+" г.<br>";
-}else{
-    text+="СИКН выведена из учетных операций с "+fmt(date)+" г.<br>";
-}
+        if(status==="in"){
+        text+="СИКН в учетных операциях с "+fmt(date)+" г.";
+        if(note){
+            text+=" Примечание: "+note;
+        }
+        text+="<br>";
+    }else{
+        text+="СИКН выведена из учетных операций с "+fmt(date)+" г.<br>";
+
+        if(reason || note){
+            if(reason){
+                text+="Причина вывода: "+reason;
+                if(note){
+                    text+=" Примечание: "+note;
+                }
+                text+="<br>";
+            }else{
+                text+="Примечание: "+note+"<br>";
+            }
+        }
+    }
 
     if(kmxDone){
         text+="Последний КМХ проведен "+fmt(kmxDone)+" г.<br>";
@@ -1719,7 +1741,7 @@ document.getElementById("after-save").onclick=function(){
     let text="";
 
     if(sikn){
-        text+="Диапазон СИКН: "+sikn+"<br>";
+        text+="Диапазон СИКН: "+sikn+"<br><br>";
     }
 
     ils.forEach((el,i)=>{
@@ -1816,17 +1838,16 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row){
     const stateTd = row.querySelector("td:nth-child(12)");
     if(stateTd){
         stateTd.style.cursor = "pointer";
-        stateTd.onclick = function(){
+                stateTd.onclick = function(){
             activeStateCell = stateTd;
 
-            // очистка полей
             document.getElementById("state-status").value = "in";
             document.getElementById("state-date").value = "";
             document.getElementById("state-reason").value = "";
+            document.getElementById("state-note").value = "";
             document.getElementById("state-kmx-done").value = "";
             document.getElementById("state-kmx-plan").value = "";
 
-            // берём текст ячейки и убираем переносы строк
             const text = (stateTd.innerText || "")
                 .replace(/\r/g, " ")
                 .replace(/\n+/g, " ")
@@ -1845,6 +1866,19 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row){
                 document.getElementById("state-date").value = m[1];
             }
 
+            m = text.match(/СИКН в учетных операциях с\s*\d{2}\.\d{2}\.\d{4}\s*г\.\s*Примечание:\s*(.+?)(?=\s*(Последний КМХ проведен|Планируемый срок КМХ|$))/i);
+            if(m){
+                document.getElementById("state-note").value = m[1].trim();
+            }
+
+            m = text.match(/Причина вывода:\s*(.+?)(?:\s+Примечание:\s*(.+?))?(?=\s*(Последний КМХ проведен|Планируемый срок КМХ|$))/i);
+            if(m){
+                document.getElementById("state-reason").value = (m[1] || "").trim();
+                if(m[2]){
+                    document.getElementById("state-note").value = m[2].trim();
+                }
+            }
+
             m = text.match(/Последний КМХ проведен\s*(\d{2}\.\d{2}\.\d{4})/i);
             if(m){
                 document.getElementById("state-kmx-done").value = m[1];
@@ -1855,11 +1889,10 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row){
                 document.getElementById("state-kmx-plan").value = m[1];
             }
 
-            // показать/скрыть строку с причиной и поменять подпись даты
             document.getElementById("state-status").onchange();
 
             document.getElementById("state-popup").style.display = "block";
-        };
+        };};
     }
 
     // 13 столбец — метрология
