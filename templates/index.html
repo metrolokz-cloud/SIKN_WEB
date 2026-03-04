@@ -1905,14 +1905,14 @@ document.getElementById("after-save").onclick=function(){
     let firstIlShown = false;
 
     if(sikn){
-                text+="Диапазон СИКН<br>"+sikn+"<br>";
+                                text+="<b>Диапазон СИКН</b><br>"+sikn+"<br>";
     }
 
     ils.forEach((el,i)=>{
         if(el.value){
 
             if(!firstIlShown && sikn){
-                text+='<div style="height:14px;"></div>';
+                                text+='<div style="height:70px;"></div>';
                 firstIlShown = true;
             }
 
