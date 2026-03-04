@@ -1183,20 +1183,20 @@ document.getElementById("verify-save").onclick=function(){
     document.getElementById("verify-popup").style.display="none";
 };
 
+document.getElementById("state-status").onchange=function(){
+
     const val=this.value;
-    const block=document.getElementById("state-reason-block");
+    const reasonWrap=document.getElementById("state-reason-block");
     const lbl=document.getElementById("state-date-label");
 
     if(val==="out"){
-        block.style.display="block";
+        reasonWrap.style.display="block";
         lbl.innerText="Дата вывода:";
     }else{
-        block.style.display="none";
+        reasonWrap.style.display="none";
         lbl.innerText="Дата ввода:";
     }
-};
-
-document.getElementById("state-cancel").onclick=function(){
+};document.getElementById("state-cancel").onclick=function(){
     document.getElementById("state-popup").style.display="none";
 };
 
@@ -1812,7 +1812,69 @@ document.getElementById("login-password").addEventListener("keydown", function(e
 
 </script>
 
+<script>
+(function () {
+    const loginBtn = document.getElementById("login-btn");
+    const passInput = document.getElementById("login-password");
+    const errorBox = document.getElementById("login-error");
+    const logoutBtn = document.getElementById("logout-btn");
 
+    if (loginBtn) {
+        const doLoginSafe = function () {
+            const usernameEl = document.getElementById("login-username");
+            const passwordEl = document.getElementById("login-password");
+
+            const username = usernameEl ? usernameEl.value : "";
+            const password = passwordEl ? passwordEl.value : "";
+
+            if (errorBox) errorBox.innerText = "";
+
+            fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: username, password: password })
+            })
+            .then(function (r) {
+                return r.json();
+            })
+            .then(function (data) {
+                if (data && data.ok) {
+                    location.reload();
+                } else {
+                    if (errorBox) errorBox.innerText = "Неверный логин или пароль";
+                }
+            })
+            .catch(function (e) {
+                console.error("Ошибка входа:", e);
+                if (errorBox) errorBox.innerText = "Ошибка сети/сервера";
+            });
+        };
+
+        loginBtn.onclick = doLoginSafe;
+
+        if (passInput) {
+            passInput.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") doLoginSafe();
+            });
+        }
+    }
+
+    if (logoutBtn) {
+        logoutBtn.onclick = function () {
+            fetch("/logout", { method: "POST" })
+            .then(function () {
+                document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                document.cookie = "division=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                location.reload();
+            })
+            .catch(function (e) {
+                console.error("Ошибка выхода:", e);
+                location.reload();
+            });
+        };
+    }
+})();
+</script>
 
 </body>
 </html>
