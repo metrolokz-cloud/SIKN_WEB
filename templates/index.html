@@ -1348,7 +1348,7 @@ document.getElementById("state-save").onclick=function(){
         if(status==="in"){
         text+="СИКН в учетных операциях с "+fmt(date)+" г.";
         if(note){
-            text+=" Примечание: "+note;
+                        text+=" "+note;
         }
         text+="<br>";
     }else{
@@ -1358,11 +1358,11 @@ document.getElementById("state-save").onclick=function(){
             if(reason){
                 text+="Причина вывода: "+reason;
                 if(note){
-                    text+=" Примечание: "+note;
+                    text+=". "+note;
                 }
                 text+="<br>";
             }else{
-                text+="Примечание: "+note+"<br>";
+                text+=note+"<br>";
             }
         }
     }
@@ -1878,16 +1878,21 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row){
                 document.getElementById("state-date").value = m[1];
             }
 
-            m = text.match(/СИКН в учетных операциях с\s*\d{2}\.\d{2}\.\d{4}\s*г\.\s*Примечание:\s*(.+?)(?=\s*(Последний КМХ проведен|Планируемый срок КМХ|$))/i);
-            if(m){
+            m = text.match(/СИКН в учетных операциях с\s*\d{2}\.\d{2}\.\d{4}\s*г\.\s*(.+?)(?=\s*(Последний КМХ проведен|Планируемый срок КМХ|$))/i);
+            if(m && m[1].trim()){
                 document.getElementById("state-note").value = m[1].trim();
             }
 
-            m = text.match(/Причина вывода:\s*(.+?)(?:\s+Примечание:\s*(.+?))?(?=\s*(Последний КМХ проведен|Планируемый срок КМХ|$))/i);
+                        m = text.match(/Причина вывода:\s*(.+?)(?=\s*(Последний КМХ проведен|Планируемый срок КМХ|$))/i);
             if(m){
-                document.getElementById("state-reason").value = (m[1] || "").trim();
-                if(m[2]){
-                    document.getElementById("state-note").value = m[2].trim();
+                const tail = (m[1] || "").trim();
+                const sep = tail.lastIndexOf(". ");
+
+                if(sep >= 0){
+                    document.getElementById("state-reason").value = tail.slice(0, sep).trim();
+                    document.getElementById("state-note").value = tail.slice(sep + 2).trim();
+                }else{
+                    document.getElementById("state-reason").value = tail;
                 }
             }
 
