@@ -434,19 +434,23 @@ box-shadow:0 20px 60px rgba(0,0,0,0.2);
 width:400px;
 ">
 
-<h2 style="text-align:center;">Вход в систему</h2>
+<h2 style="text-align:center; margin:0 0 22px 0; font-size:28px; color:#1f4f8a;">
+Вход в систему
+</h2>
 
 <input id="login-username" placeholder="Логин"
-style="width:100%;margin-bottom:15px;font-size:18px;padding:10px;">
+style="width:100%; margin-bottom:14px; font-size:18px; padding:12px 14px; border:1px solid #cfd6e0; border-radius:10px; box-sizing:border-box; background:#f8fafc;">
 
 <input id="login-password" type="password" placeholder="Пароль"
-style="width:100%;margin-bottom:20px;font-size:18px;padding:10px;">
+style="width:100%; margin-bottom:18px; font-size:18px; padding:12px 14px; border:1px solid #cfd6e0; border-radius:10px; box-sizing:border-box; background:#f8fafc;">
 
 <button id="login-btn" style="
 width:100%;
-padding:12px;
+padding:13px 12px;
 font-size:18px;
 background:#2f6fe4;
+border-radius:10px;
+box-shadow:0 10px 22px rgba(47,111,228,0.28);
 color:white;
 border:none;
 cursor:pointer;
@@ -454,7 +458,7 @@ cursor:pointer;
 Войти
 </button>
 
-<div id="login-error" style="color:red;margin-top:15px;text-align:center;"></div>
+<div id="login-error" style="color:#d40000; margin-top:14px; text-align:center; font-size:16px;"></div>
 
 </div>
 </div>
@@ -1263,7 +1267,7 @@ document.getElementById("state-status").onchange=function(){
     }
 };
 
-};document.getElementById("state-cancel").onclick=function(){
+document.getElementById("state-cancel").onclick=function(){
     document.getElementById("state-popup").style.display="none";
 };
 
@@ -1796,9 +1800,10 @@ document.querySelectorAll("#sikn-table tr[data-row]").forEach(function(row){
 // ===== LOGIN LOGIC =====
 
 function getCookie(name){
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if(parts.length === 2) return parts.pop().split(';').shift();
+    const value = "; " + document.cookie;
+    const parts = value.split("; " + name + "=");
+    if(parts.length === 2) return parts.pop().split(";").shift();
+    return "";
 }
 
 // если уже авторизован — скрываем логин
@@ -1882,69 +1887,6 @@ document.getElementById("login-password").addEventListener("keydown", function(e
 
 </script>
 
-<script>
-(function () {
-    const loginBtn = document.getElementById("login-btn");
-    const passInput = document.getElementById("login-password");
-    const errorBox = document.getElementById("login-error");
-    const logoutBtn = document.getElementById("logout-btn");
-
-    if (loginBtn) {
-        const doLoginSafe = function () {
-            const usernameEl = document.getElementById("login-username");
-            const passwordEl = document.getElementById("login-password");
-
-            const username = usernameEl ? usernameEl.value : "";
-            const password = passwordEl ? passwordEl.value : "";
-
-            if (errorBox) errorBox.innerText = "";
-
-            fetch("/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username: username, password: password })
-            })
-            .then(function (r) {
-                return r.json();
-            })
-            .then(function (data) {
-                if (data && data.ok) {
-                    location.reload();
-                } else {
-                    if (errorBox) errorBox.innerText = "Неверный логин или пароль";
-                }
-            })
-            .catch(function (e) {
-                console.error("Ошибка входа:", e);
-                if (errorBox) errorBox.innerText = "Ошибка сети/сервера";
-            });
-        };
-
-        loginBtn.onclick = doLoginSafe;
-
-        if (passInput) {
-            passInput.addEventListener("keydown", function (e) {
-                if (e.key === "Enter") doLoginSafe();
-            });
-        }
-    }
-
-    if (logoutBtn) {
-        logoutBtn.onclick = function () {
-            fetch("/logout", { method: "POST" })
-            .then(function () {
-                document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                document.cookie = "division=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                location.reload();
-            })
-            .catch(function (e) {
-                console.error("Ошибка выхода:", e);
-                location.reload();
-            });
-        };
-    }
-})();
-</script>
 
 </body>
 </html>
