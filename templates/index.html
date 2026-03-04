@@ -1838,6 +1838,18 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row){
     const stateTd = row.querySelector("td:nth-child(12)");
     if(stateTd){
         stateTd.style.cursor = "pointer";
+
+
+
+
+
+
+
+
+
+
+
+
                 stateTd.onclick = function(){
             activeStateCell = stateTd;
 
@@ -1891,8 +1903,8 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row){
 
             document.getElementById("state-status").onchange();
 
-            document.getElementById("state-popup").style.display = "block";
-        };};
+                        document.getElementById("state-popup").style.display = "block";
+        };
     }
 
     // 13 столбец — метрология
