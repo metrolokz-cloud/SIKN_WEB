@@ -934,8 +934,59 @@ document.querySelectorAll("#sikn-table tr").forEach((row,i)=>{
 
     td7.style.cursor="pointer";
 
-    td7.onclick=function(){
+        td7.onclick=function(){
         activeAfterCell = td7;
+
+        const siknInput = document.getElementById("after-sikn");
+        const countSelect = document.getElementById("after-il-count");
+        const box = document.getElementById("after-il-container");
+
+        // сначала очищаем
+        siknInput.value = "";
+        countSelect.value = "0";
+        box.innerHTML = "";
+
+        // читаем то, что уже сохранено в ячейке
+        const text = (td7.innerText || "").replace(/\r/g, "");
+        const lines = text.split("\n").map(x => x.trim()).filter(Boolean);
+
+        const ilValues = [];
+
+        lines.forEach(function(line){
+
+            let m = line.match(/^Диапазон СИКН:\s*(.+)$/i);
+            if(m){
+                siknInput.value = m[1].trim();
+                return;
+            }
+
+            m = line.match(/^Диапазон ИЛ\s*(\d+)\s*:\s*(.+)$/i);
+            if(m){
+                const n = parseInt(m[1], 10);
+                if(n >= 1 && n <= 8){
+                    ilValues[n - 1] = m[2].trim();
+                }
+            }
+
+        });
+
+        // определяем, сколько ИЛ показать
+        let count = 0;
+        for(let i = ilValues.length - 1; i >= 0; i--){
+            if((ilValues[i] || "").trim() !== ""){
+                count = i + 1;
+                break;
+            }
+        }
+
+        countSelect.value = String(count);
+        countSelect.onchange();
+
+        // подставляем значения ИЛ
+        document.querySelectorAll(".after-il").forEach(function(input, i){
+            input.value = ilValues[i] || "";
+        });
+
         document.getElementById("range-after-popup").style.display="block";
     };
 
@@ -1069,6 +1120,7 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row,i){
 
     const td = row.querySelector("td:nth-child(11)");
     if(!td) return;
+    td.style.cursor="pointer";
 
         td.onclick = function(){
 
@@ -1764,8 +1816,50 @@ document.querySelectorAll("#sikn-table tr[data-row]").forEach(function(row){
     const stateTd = row.querySelector("td:nth-child(12)");
     if(stateTd){
         stateTd.style.cursor = "pointer";
-        stateTd.onclick = function(){
+                stateTd.onclick = function(){
             activeStateCell = stateTd;
+
+            document.getElementById("state-status").value = "in";
+            document.getElementById("state-date").value = "";
+            document.getElementById("state-reason").value = "";
+            document.getElementById("state-kmx-done").value = "";
+            document.getElementById("state-kmx-plan").value = "";
+
+            const text = (stateTd.innerText || "").replace(/\r/g, "");
+            const lines = text.split("\n").map(x => x.trim()).filter(Boolean);
+
+            lines.forEach(function(line){
+
+                let m = line.match(/^СИКН в учетных операциях с\s*(\d{2}\.\d{2}\.\d{4})\s*г\./i);
+                if(m){
+                    document.getElementById("state-status").value = "in";
+                    document.getElementById("state-date").value = m[1];
+                    return;
+                }
+
+                m = line.match(/^СИКН выведена из учетных операций с\s*(\d{2}\.\d{2}\.\d{4})\s*г\./i);
+                if(m){
+                    document.getElementById("state-status").value = "out";
+                    document.getElementById("state-date").value = m[1];
+                    return;
+                }
+
+                m = line.match(/^Последний КМХ проведен\s*(\d{2}\.\d{2}\.\d{4})\s*г\./i);
+                if(m){
+                    document.getElementById("state-kmx-done").value = m[1];
+                    return;
+                }
+
+                m = line.match(/^Планируемый срок КМХ\s*-\s*(\d{2}\.\d{2}\.\d{4})\s*г\./i);
+                if(m){
+                    document.getElementById("state-kmx-plan").value = m[1];
+                    return;
+                }
+
+            });
+
+            document.getElementById("state-status").onchange();
+
             document.getElementById("state-popup").style.display = "block";
         };
     }
@@ -1774,8 +1868,40 @@ document.querySelectorAll("#sikn-table tr[data-row]").forEach(function(row){
     const metTd = row.querySelector("td:nth-child(13)");
     if(metTd){
         metTd.style.cursor = "pointer";
-        metTd.onclick = function(){
+                metTd.onclick = function(){
             activeMetCell = metTd;
+
+            document.getElementById("met-cert").value = "";
+            document.getElementById("met-reg").value = "";
+            document.getElementById("met-date").value = "";
+            document.getElementById("met-expire").value = "";
+
+            const text = (metTd.innerText || "").replace(/\r/g, "");
+            const lines = text.split("\n").map(x => x.trim()).filter(Boolean);
+
+            lines.forEach(function(line){
+
+                let m = line.match(/^Сертификат о метрологической аттестации №(.+?)(?:,)?$/i);
+                if(m){
+                    document.getElementById("met-cert").value = m[1].trim();
+                    return;
+                }
+
+                m = line.match(/^регистрационный номер в реестре ГСИ РК\s+(.+?)\s+от\s+(\d{2}\.\d{2}\.\d{4})\s*г\./i);
+                if(m){
+                    document.getElementById("met-reg").value = m[1].trim();
+                    document.getElementById("met-date").value = m[2];
+                    return;
+                }
+
+                m = line.match(/^Срок действия МВИ СИКН\s*[–-]\s*(\d{2}\.\d{2}\.\d{4})\s*г\./i);
+                if(m){
+                    document.getElementById("met-expire").value = m[1];
+                    return;
+                }
+
+            });
+
             document.getElementById("metrology-popup").style.display = "block";
         };
     }
