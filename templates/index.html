@@ -1177,7 +1177,7 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row,i){
             });
         },100);
 
-    };};
+    };
 
 });
 
@@ -1380,15 +1380,8 @@ function checkVerifyColors(cell){
 
     if(!cell) return;
 
-    let text = cell.innerText;
-
-    const today = new Date();
-    today.setHours(0,0,0,0);
-
-        // красим всю строку целиком, где есть дата
     const regex = /(\d{2}\.\d{2}\.\d{4}) г\.(?:\s*\((?:межп\.\s*)?(\d)\s*(?:г\.|год|года|лет)\))?/g;
 
-    // делаем HTML по строкам
     let lines = (cell.innerText || "").split("\n");
 
     const today = new Date();
@@ -1396,12 +1389,8 @@ function checkVerifyColors(cell){
 
     lines = lines.map(function(line){
 
-        let m = line.match(regex);
-        if(!m) return line;
-
-        // берём первую дату из строки (в твоих строках обычно она одна)
         const one = regex.exec(line);
-        regex.lastIndex = 0; // обязательно сбросить, потому что regex с /g/
+        regex.lastIndex = 0;
 
         if(!one) return line;
 
@@ -1426,8 +1415,6 @@ function checkVerifyColors(cell){
 
     cell.innerHTML = lines.join("<br>");
 }
-
-document.addEventListener("keydown", function(e){
 
 // === ESC закрывает popup ===
 if(e.key === "Escape"){
