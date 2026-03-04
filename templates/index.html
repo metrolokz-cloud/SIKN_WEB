@@ -1416,76 +1416,74 @@ function checkVerifyColors(cell){
     cell.innerHTML = lines.join("<br>");
 }
 
+
+
+
+
+
 document.addEventListener("keydown", function(e){
 
-// === ESC закрывает popup ===
-if(e.key === "Escape"){
+    // === ESC закрывает popup ===
+    if(e.key === "Escape"){
 
-    if(document.getElementById("range-popup").style.display === "block"){
-        document.getElementById("range-cancel").click();
+        if(document.getElementById("range-popup").style.display === "block"){
+            document.getElementById("range-cancel").click();
+        }
+
+        if(document.getElementById("scheme-popup").style.display === "block"){
+            document.getElementById("scheme-cancel").click();
+        }
+
+        if(document.getElementById("verify-popup").style.display === "block"){
+            document.getElementById("verify-cancel").click();
+        }
+
+        if(document.getElementById("state-popup").style.display === "block"){
+            document.getElementById("state-cancel").click();
+        }
+
+        if(document.getElementById("metrology-popup").style.display === "block"){
+            document.getElementById("met-cancel").click();
+        }
+
+        if(document.getElementById("range-after-popup").style.display === "block"){
+            document.getElementById("after-cancel").click();
+        }
+
+        return;
     }
 
-    if(document.getElementById("scheme-popup").style.display === "block"){
-        document.getElementById("scheme-cancel").click();
-    }
-
-    if(document.getElementById("verify-popup").style.display === "block"){
-        document.getElementById("verify-cancel").click();
-    }
-
-    if(document.getElementById("state-popup").style.display === "block"){
-        document.getElementById("state-cancel").click();
-    }
-
-    if(document.getElementById("metrology-popup").style.display === "block"){
-        document.getElementById("met-cancel").click();
-    }
-
-if(document.getElementById("range-after-popup").style.display === "block"){
-    document.getElementById("after-cancel").click();
-}
-
-    return;
-}
-    }
     if(e.key !== "Enter") return;
 
-    // RANGE POPUP
     if(document.getElementById("range-popup").style.display === "block"){
         document.getElementById("range-save").click();
         return;
     }
 
-    // SCHEME POPUP
     if(document.getElementById("scheme-popup").style.display === "block"){
         document.getElementById("scheme-save").click();
         return;
     }
 
-    // VERIFY POPUP
     if(document.getElementById("verify-popup").style.display === "block"){
         document.getElementById("verify-save").click();
         return;
     }
 
-// STATE POPUP
-if(document.getElementById("state-popup").style.display === "block"){
-    document.getElementById("state-save").click();
-    return;
-}
+    if(document.getElementById("state-popup").style.display === "block"){
+        document.getElementById("state-save").click();
+        return;
+    }
 
-// METROLOGY POPUP
-if(document.getElementById("metrology-popup").style.display === "block"){
-    document.getElementById("met-save").click();
-    return;
-}
+    if(document.getElementById("metrology-popup").style.display === "block"){
+        document.getElementById("met-save").click();
+        return;
+    }
 
-if(document.getElementById("range-after-popup").style.display === "block"){
-    document.getElementById("after-save").click();
-    return;
-}
-
-
+    if(document.getElementById("range-after-popup").style.display === "block"){
+        document.getElementById("after-save").click();
+        return;
+    }
 
 });
 
