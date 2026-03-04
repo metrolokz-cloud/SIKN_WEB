@@ -158,9 +158,12 @@ tr:hover td{
 }
 
 #verify-sikn-int,
-#verify-pp-int,
-#verify-comp-int{
+#verify-pp-int{
     display:none !important;
+}
+
+#verify-comp-int{
+    display:none;
 }
 
 #state-popup select{
@@ -1178,6 +1181,14 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row,i){
         document.getElementById("verify-comp").value = "";
         document.getElementById("verify-tpu-int").value = "";
 
+        document.getElementById("verify-comp-int").value = "";
+
+        const ownerCell = row.querySelector("td:nth-child(4)");
+        const ownerText = ownerCell ? (ownerCell.innerText || "") : "";
+        const isKtkK = ownerText.includes("КТК-К");
+
+        document.getElementById("verify-comp-int").style.display = isKtkK ? "block" : "none";
+
         const savedText = (td.innerText || "").replace(/\r/g,"");
 
         // достаём даты из сохранённого текста
@@ -1195,6 +1206,14 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row,i){
         if(ppDate)   document.getElementById("verify-pp").value   = ppDate;
         if(tpuDate)  document.getElementById("verify-tpu").value  = tpuDate;
         if(compDate) document.getElementById("verify-comp").value = compDate;
+
+        let compInt = "";
+        let mCompInt = savedText.match(/Поверка компьютеров расхода выполнена\s*-\s*\d{2}\.\d{2}\.\d{4}\s*г\.\s*\((?:межп\.\s*)?(\d)\s*(?:г\.|год|года|лет)\)/);
+        if(!mCompInt){
+            mCompInt = savedText.match(/Поверка компьютеров расхода.*?\(межп\.\s*(\d)\s*(?:г\.|год|года|лет)\)/);
+        }
+        if(mCompInt) compInt = mCompInt[1];
+        if(compInt) document.getElementById("verify-comp-int").value = compInt;
 
         // интервал ТПУ (если был сохранён)
         let tpuInt = "";
@@ -1326,9 +1345,19 @@ document.getElementById("verify-save").onclick=function(){
         text+="Поверка ТПУ выполнена - "+fmt(tpu)+" г."+ tpuIntText +"<br>";
     }
 
-    const comp = document.getElementById("verify-comp").value;
+        const comp = document.getElementById("verify-comp").value;
+    const compInt = document.getElementById("verify-comp-int").value;
+
+    let compIntText = "";
+    if(compInt){
+        let word = "года";
+        if(compInt === "1") word = "год";
+        if(compInt === "5") word = "лет";
+        compIntText = " (межп. " + compInt + " " + word + ")";
+    }
+
     if(comp){
-        text+="Поверка компьютеров расхода выполнена - "+fmt(comp)+" г.<br>";
+        text+="Поверка компьютеров расхода выполнена - "+fmt(comp)+" г."+ compIntText +"<br>";
     }
 
     if(activeVerifyCell){
@@ -1876,7 +1905,7 @@ document.getElementById("after-save").onclick=function(){
     let firstIlShown = false;
 
     if(sikn){
-        text+="Диапазон СИКН: "+sikn+"<br>";
+                text+="Диапазон СИКН<br>"+sikn+"<br>";
     }
 
     ils.forEach((el,i)=>{
