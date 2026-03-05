@@ -244,8 +244,8 @@ tr:hover td{
 }
 
 .blue-row td{
-        background:#3b9cff !important;
-    color:#ffffff !important;
+            background:#FFE699 !important;
+    color:#000000 !important;
 }
 
 .section-title-row td{
@@ -1884,13 +1884,13 @@ document.getElementById("export-excel").onclick=async function(){
                 cell.fill = {
                     type: "pattern",
                     pattern: "solid",
-                    fgColor: { argb: "FF3B9CFF" }
+                    fgColor: { argb: "FFFFE699" }
                 };
                 cell.font = {
                     name: "Times New Roman",
                     size: td.tagName === "TH" ? 14 : 12,
                     bold: td.tagName === "TH",
-                    color: { argb: "FFFFFFFF" }
+                    color: { argb: "FF000000" }
                 };
             }
 
@@ -1928,7 +1928,7 @@ document.getElementById("export-excel").onclick=async function(){
 
                 // базовый цвет для синей строки
                 if(isBlueRow){
-                    lineFont.color = { argb: "FFFFFFFF" };
+                    lineFont.color = { argb: "FF000000" };
                 }
 
                 // 12-й столбец: только "Планируемый срок КМХ" красный
