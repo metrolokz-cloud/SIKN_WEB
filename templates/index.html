@@ -1741,9 +1741,35 @@ document.getElementById("export-excel").onclick=async function(){
             const colspan = parseInt(td.getAttribute("colspan") || "1", 10);
             const rowspan = parseInt(td.getAttribute("rowspan") || "1", 10);
 
-            // текст с переносами
-            let text = td.innerText || "";
-            text = text.replace(/\r/g, "").trim();
+                        // текст с переносами для Excel (сохраняем новые строки и пустые строки)
+            let html = td.innerHTML || "";
+
+            // 7-й столбец: добавляем нормальный большой отступ перед первым "Диапазон ИЛ..."
+            if(cIndex === 7){
+                html = html.replace(/<div[^>]*height:\s*35px;?[^>]*><\/div>/gi, "<br><br>");
+            }
+
+            // Переводим HTML-переносы в переносы строк Excel
+            html = html
+                .replace(/<br\s*\/?>/gi, "\n")
+                .replace(/<\/div>/gi, "\n")
+                .replace(/<div[^>]*>/gi, "");
+
+            const temp = document.createElement("div");
+            temp.innerHTML = html;
+
+            let text = (temp.textContent || "")
+                .replace(/\u00A0/g, " ")
+                .replace(/\r/g, "")
+                .replace(/\n{4,}/g, "\n\n\n")
+                .trim();
+
+            // Подправляем подписи в 7-м столбце (на случай старых записей)
+            if(cIndex === 7){
+                text = text
+                    .replace(/Диапазон СИКН\s*:?\s*\n/gi, "Диапазон СИКН\n")
+                    .replace(/Диапазон ИЛ\s*(\d+)\s*:?\s*\n/gi, "Диапазон ИЛ$1\n");
+            }
 
             const cell = excelRow.getCell(cIndex);
             cell.value = text;
@@ -1806,15 +1832,33 @@ document.getElementById("export-excel").onclick=async function(){
                 };
             }
 
-            // красный/оранжевый текст (если в ячейке есть такие части)
-            if(td.querySelector(".date-red")){
+                        // красный/оранжевый текст (классы + style="color:...")
+            const hasRedClass = !!td.querySelector(".date-red");
+            const hasOrangeClass = !!td.querySelector(".date-orange");
+
+            const coloredSpans = Array.from(td.querySelectorAll("span[style]"));
+            const hasRedStyle = coloredSpans.some(s => {
+                const st = (s.getAttribute("style") || "").toLowerCase().replace(/\s+/g,"");
+                return st.includes("color:red") ||
+                       st.includes("color:#ff0000") ||
+                       st.includes("color:rgb(255,0,0)");
+            });
+
+            const hasOrangeStyle = coloredSpans.some(s => {
+                const st = (s.getAttribute("style") || "").toLowerCase().replace(/\s+/g,"");
+                return st.includes("color:orange") ||
+                       st.includes("color:#ff7a00") ||
+                       st.includes("color:rgb(255,122,0)");
+            });
+
+            if(hasRedClass || hasRedStyle){
                 cell.font = {
                     name: "Times New Roman",
                     size: td.tagName === "TH" ? 14 : 12,
                     bold: true,
                     color: { argb: "FFFF0000" }
                 };
-            }else if(td.querySelector(".date-orange")){
+            }else if(hasOrangeClass || hasOrangeStyle){
                 cell.font = {
                     name: "Times New Roman",
                     size: td.tagName === "TH" ? 14 : 12,
