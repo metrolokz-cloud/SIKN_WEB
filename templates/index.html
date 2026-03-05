@@ -1832,39 +1832,73 @@ document.getElementById("export-excel").onclick=async function(){
                 };
             }
 
-                        // красный/оранжевый текст (классы + style="color:...")
-            const hasRedClass = !!td.querySelector(".date-red");
-            const hasOrangeClass = !!td.querySelector(".date-orange");
+                                    // красный/оранжевый текст в Excel: по строкам
+            // 12-й столбец ("Текущее состояние СИКН"): красим только строку "Планируемый срок КМХ"
+            const baseSize = td.tagName === "TH" ? 14 : 12;
+            const isBlueRow = !!(td.closest("tr") && td.closest("tr").classList.contains("blue-row"));
 
-            const coloredSpans = Array.from(td.querySelectorAll("span[style]"));
-            const hasRedStyle = coloredSpans.some(s => {
-                const st = (s.getAttribute("style") || "").toLowerCase().replace(/\s+/g,"");
-                return st.includes("color:red") ||
-                       st.includes("color:#ff0000") ||
-                       st.includes("color:rgb(255,0,0)");
+            const htmlForColor = (td.innerHTML || "")
+                .replace(/<div[^>]*height:\s*35px;?[^>]*><\/div>/gi, "<br><br>")
+                .replace(/<\/div>/gi, "<br>")
+                .replace(/<div[^>]*>/gi, "");
+
+            const parts = htmlForColor.split(/<br\s*\/?>/gi);
+
+            let needRichText = false;
+            const richText = [];
+
+            parts.forEach((partHtml, partIndex) => {
+                const tmp = document.createElement("div");
+                tmp.innerHTML = partHtml;
+
+                let lineText = (tmp.textContent || "").replace(/\u00A0/g, " ");
+
+                const hasRedClass = !!tmp.querySelector(".date-red");
+                const hasOrangeClass = !!tmp.querySelector(".date-orange");
+
+                const isPlannedKmxLine = /Планируемый срок КМХ/i.test(lineText);
+
+                const lineFont = {
+                    name: "Times New Roman",
+                    size: baseSize,
+                    bold: td.tagName === "TH"
+                };
+
+                // базовый цвет для синей строки
+                if(isBlueRow){
+                    lineFont.color = { argb: "FFFFFFFF" };
+                }
+
+                // 12-й столбец: только "Планируемый срок КМХ" красный
+                if(cIndex === 12 && isPlannedKmxLine){
+                    lineFont.bold = true;
+                    lineFont.color = { argb: "FFFF0000" };
+                    needRichText = true;
+                }
+                // остальные столбцы: красный/оранжевый по классам
+                else if(cIndex !== 12 && hasRedClass){
+                    lineFont.bold = true;
+                    lineFont.color = { argb: "FFFF0000" };
+                    needRichText = true;
+                }
+                else if(cIndex !== 12 && hasOrangeClass){
+                    lineFont.bold = true;
+                    lineFont.color = { argb: "FFFF7A00" };
+                    needRichText = true;
+                }
+
+                if(partIndex < parts.length - 1){
+                    lineText += "\n";
+                }
+
+                richText.push({
+                    text: lineText,
+                    font: lineFont
+                });
             });
 
-            const hasOrangeStyle = coloredSpans.some(s => {
-                const st = (s.getAttribute("style") || "").toLowerCase().replace(/\s+/g,"");
-                return st.includes("color:orange") ||
-                       st.includes("color:#ff7a00") ||
-                       st.includes("color:rgb(255,122,0)");
-            });
-
-            if(hasRedClass || hasRedStyle){
-                cell.font = {
-                    name: "Times New Roman",
-                    size: td.tagName === "TH" ? 14 : 12,
-                    bold: true,
-                    color: { argb: "FFFF0000" }
-                };
-            }else if(hasOrangeClass || hasOrangeStyle){
-                cell.font = {
-                    name: "Times New Roman",
-                    size: td.tagName === "TH" ? 14 : 12,
-                    bold: true,
-                    color: { argb: "FFFF7A00" }
-                };
+            if(needRichText){
+                cell.value = { richText: richText };
             }
 
             // merge для colspan/rowspan
