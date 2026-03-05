@@ -248,6 +248,39 @@ tr:hover td{
     color:#ffffff !important;
 }
 
+.section-title-row td{
+    cursor:pointer;
+    user-select:none;
+    transition:background 0.15s ease;
+}
+
+.section-title-row:hover td{
+    background:#dfe7f3 !important;
+}
+
+.section-title-wrap{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+}
+
+.section-title-arrow{
+    display:inline-block;
+    width:18px;
+    font-size:16px;
+    line-height:1;
+    transition:transform 0.15s ease;
+}
+
+.section-collapsed .section-title-arrow{
+    transform:rotate(-90deg);
+}
+
+.section-hidden-row{
+    display:none !important;
+}
+
 .date-red{
     color:#ff0000 !important;
     font-weight:bold;
@@ -511,6 +544,35 @@ background:#f4f6f9;
 cursor:pointer;
 ">
 Показать тех. столбцы
+</button>
+
+<button id="collapse-all-sections" style="
+margin-bottom:20px;
+margin-left:10px;
+font-size:18px;
+padding:10px 22px;
+border-radius:6px;
+border:1px solid #444;
+background:#eef2f7;
+cursor:pointer;
+box-shadow:0 6px 14px rgba(0,0,0,0.08);
+">
+Свернуть все
+</button>
+
+<button id="expand-all-sections" style="
+margin-bottom:20px;
+margin-left:10px;
+font-size:18px;
+padding:10px 22px;
+border-radius:6px;
+border:1px solid #2f5fbf;
+background:#dfeafe;
+color:#123c8a;
+cursor:pointer;
+box-shadow:0 6px 14px rgba(0,0,0,0.08);
+">
+Развернуть все
 </button>
 
 <table id="sikn-table">
@@ -1969,6 +2031,97 @@ document.getElementById("toggle-tech-cols").onclick=function(){
     }
 
 };
+
+// ===== COLLAPSE / EXPAND SECTIONS =====
+let sectionTitleRows = [];
+
+function isSectionTitleRow(tr){
+    if(!tr) return false;
+    if(tr.children.length !== 1) return false;
+
+    const td = tr.children[0];
+    if(!td) return false;
+
+    return td.tagName === "TD" && Number(td.colSpan) === 13;
+}
+
+function setSectionExpanded(titleRow, expanded){
+    if(!titleRow) return;
+
+    if(expanded){
+        titleRow.classList.remove("section-collapsed");
+    }else{
+        titleRow.classList.add("section-collapsed");
+    }
+
+    let next = titleRow.nextElementSibling;
+
+    while(next){
+        if(isSectionTitleRow(next)) break;
+
+        if(expanded){
+            next.classList.remove("section-hidden-row");
+        }else{
+            next.classList.add("section-hidden-row");
+        }
+
+        next = next.nextElementSibling;
+    }
+}
+
+function prepareSectionToggles(){
+    const table = document.getElementById("sikn-table");
+    if(!table) return;
+
+    sectionTitleRows = [];
+
+    const rows = Array.from(table.querySelectorAll("tr"));
+
+    rows.forEach(function(tr, i){
+        if(i === 0) return; // шапка таблицы
+        if(!isSectionTitleRow(tr)) return;
+
+        sectionTitleRows.push(tr);
+        tr.classList.add("section-title-row");
+
+        const td = tr.children[0];
+
+        if(!td.querySelector(".section-title-wrap")){
+            const originalHtml = td.innerHTML;
+            td.innerHTML =
+                '<span class="section-title-wrap">' +
+                    '<span class="section-title-arrow">▾</span>' +
+                    '<span>' + originalHtml + '</span>' +
+                '</span>';
+        }
+
+        td.onclick = function(){
+            const nowCollapsed = tr.classList.contains("section-collapsed");
+            setSectionExpanded(tr, nowCollapsed); // если был свернут — развернем
+        };
+    });
+
+    const collapseBtn = document.getElementById("collapse-all-sections");
+    const expandBtn = document.getElementById("expand-all-sections");
+
+    if(collapseBtn){
+        collapseBtn.onclick = function(){
+            sectionTitleRows.forEach(function(tr){
+                setSectionExpanded(tr, false);
+            });
+        };
+    }
+
+    if(expandBtn){
+        expandBtn.onclick = function(){
+            sectionTitleRows.forEach(function(tr){
+                setSectionExpanded(tr, true);
+            });
+        };
+    }
+}
+
+prepareSectionToggles();
 
 document.querySelectorAll(".custom-date").forEach(function(input){
 
