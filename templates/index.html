@@ -2122,6 +2122,9 @@ function prepareSectionToggles(){
 }
 
 prepareSectionToggles();
+sectionTitleRows.forEach(function(tr){
+    setSectionExpanded(tr, false);
+});
 
 document.querySelectorAll(".custom-date").forEach(function(input){
 
