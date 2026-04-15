@@ -14,8 +14,8 @@ def get_db():
     if not database_url:
         raise Exception("DATABASE_URL not set")
 
-if database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
 
     return psycopg2.connect(database_url)
 
