@@ -2327,9 +2327,15 @@ document.querySelectorAll("#sikn-table tr").forEach(function(row){
             }
 
             m = text.match(/СИКН в учетных операциях с\s*\d{2}\.\d{2}\.\d{4}\s*г\.\s*(.+?)(?=\s*(Последний КМХ проведен|Планируемый срок КМХ|$))/i);
-            if(m && m[1].trim()){
-                document.getElementById("state-note").value = m[1].trim();
-            }
+
+if(m && m[1].trim()){
+    let noteText = m[1].trim();
+
+    // защита от подхвата КМХ
+    if(!noteText.includes("Последний КМХ проведен") && !noteText.includes("Планируемый срок КМХ")){
+        document.getElementById("state-note").value = noteText;
+    }
+}
 
                         m = text.match(/Причина вывода:\s*(.+?)(?=\s*(Последний КМХ проведен|Планируемый срок КМХ|$))/i);
             if(m){
