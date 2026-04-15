@@ -4,5 +4,4 @@ jinja2
 python-multipart
 openpyxl
 gunicorn
-
-psycopg2
+psycopg2-binary
