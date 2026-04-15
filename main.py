@@ -14,6 +14,9 @@ def get_db():
     if not database_url:
         raise Exception("DATABASE_URL not set")
 
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
     return psycopg2.connect(database_url)
 
 
@@ -38,10 +41,9 @@ def init_db():
         )
         """)
 
-        cur.execute("DELETE FROM users")
 
         cur.execute(
-            "INSERT INTO users(username, password) VALUES(%s, %s)",
+            "INSERT INTO users(username, password) VALUES(%s, %s) ON CONFLICT (username) DO NOTHING",
             ("SIKN", "KTOKMH")
         )
 
