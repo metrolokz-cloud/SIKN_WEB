@@ -1586,19 +1586,28 @@ function checkVerifyColors(cell){
 
     if(!cell) return;
 
-    const regex = /(\d{2}\.\d{2}\.\d{4}) г\.(?:\s*\((?:межп\.\s*)?(\d)\s*(?:г\.|год|года|лет)\))?/g;
+    const regex = /(\d{2}\.\d{2}\.\d{4}) г\.(?:\s*\((?:межп\.\s*)?(\d)\s*(?:г\.|год|года|лет)\))?/;
 
-    let lines = (cell.innerText || "").split("\n");
+    let lines = (cell.innerHTML || "")
+        .split(/<br\s*\/?>/i)
+        .map(function(line){
+            return line.replace(/^\s+|\s+$/g, "");
+        })
+        .filter(function(line){
+            return line !== "";
+        });
 
     const today = new Date();
     today.setHours(0,0,0,0);
 
     lines = lines.map(function(line){
 
-        const one = regex.exec(line);
-        regex.lastIndex = 0;
+        const temp = document.createElement("div");
+        temp.innerHTML = line;
+        const plain = (temp.textContent || "").trim();
 
-        if(!one) return line;
+        const one = plain.match(regex);
+        if(!one) return plain;
 
         const dateStr = one[1];
         const years = parseInt(one[2] || "1", 10);
@@ -1610,13 +1619,13 @@ function checkVerifyColors(cell){
         const diff = Math.floor((expire.getTime() - today.getTime()) / 86400000);
 
         if(diff < 0){
-            return '<span class="date-red">' + line + '</span>';
+            return '<span class="date-red">' + plain + '</span>';
         }
         else if(diff <= 10){
-            return '<span class="date-orange">' + line + '</span>';
+            return '<span class="date-orange">' + plain + '</span>';
         }
 
-        return line;
+        return plain;
     });
 
     cell.innerHTML = lines.join("<br>");
