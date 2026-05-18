@@ -17,7 +17,7 @@ def get_db():
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-    return psycopg2.connect(database_url)
+    return psycopg2.connect(database_url, sslmode="require")
 
 
 def init_db():
