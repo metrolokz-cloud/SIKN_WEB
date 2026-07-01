@@ -1801,6 +1801,7 @@ document.getElementById("export-excel").onclick=async function(){
         const excelRow = ws.getRow(rIndex + 1);
 
         let cIndex = 1;
+        let maxLines = 1;
 
 const firstTd = tr.querySelector("td[colspan='13']");
 if(firstTd){
@@ -1836,6 +1837,7 @@ if(firstTd){
     };
 
     ws.mergeCells(rIndex + 1, 1, rIndex + 1, 13);
+    excelRow.height = 28;
     return;
 }
 
@@ -1878,6 +1880,11 @@ if(firstTd){
                 text = text
                     .replace(/Диапазон СИКН\s*:?\s*\n/gi, "Диапазон СИКН\n")
                     .replace(/Диапазон ИЛ\s*(\d+)\s*:?\s*\n/gi, "Диапазон ИЛ$1\n");
+            }
+
+            const lineCount = String(text || "").split("\n").length;
+            if(lineCount > maxLines){
+                maxLines = lineCount;
             }
 
             const cell = excelRow.getCell(cIndex);
@@ -2025,6 +2032,8 @@ if(firstTd){
 
             cIndex += colspan;
         });
+
+        excelRow.height = Math.max(22, maxLines * 18);
     });
 
     // очистка служебных значений после merge
