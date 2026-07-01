@@ -1802,6 +1802,42 @@ document.getElementById("export-excel").onclick=async function(){
 
         let cIndex = 1;
 
+const firstTd = tr.querySelector("td[colspan='13']");
+if(firstTd){
+    const text = (firstTd.innerText || "").replace(/\u00A0/g, " ").trim();
+
+    const cell = excelRow.getCell(1);
+    cell.value = text;
+
+    cell.font = {
+        name: "Times New Roman",
+        size: 14,
+        bold: true
+    };
+
+    cell.alignment = {
+        vertical: "middle",
+        horizontal: "center",
+        wrapText: true
+    };
+
+    cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFE9E9E9" }
+    };
+
+    cell.border = {
+        top:    { style: "thin", color: { argb: "FF000000" } },
+        left:   { style: "thin", color: { argb: "FF000000" } },
+        bottom: { style: "thin", color: { argb: "FF000000" } },
+        right:  { style: "thin", color: { argb: "FF000000" } }
+    };
+
+    ws.mergeCells(rIndex + 1, 1, rIndex + 1, 13);
+    return;
+}
+
         Array.from(tr.children).forEach(cellEl=>{
 
             // пропускаем занятые ячейки (после merge)
