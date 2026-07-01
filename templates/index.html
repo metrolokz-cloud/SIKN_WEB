@@ -1804,8 +1804,9 @@ document.getElementById("export-excel").onclick=async function(){
 
 const firstTd = tr.querySelector("td[colspan='13']");
 if(firstTd){
-    const text = (firstTd.innerText || "").replace(/\u00A0/g, " ").trim();
-
+    const text = ((firstTd.querySelector(".section-title-wrap span:last-child") || firstTd).innerText || "")
+    .replace(/\u00A0/g, " ")
+    .trim();
     const cell = excelRow.getCell(1);
     cell.value = text;
 
